@@ -216,6 +216,15 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
         </a>
     </li>
     
+    <!-- Auditoría - Solo Super Admin -->
+    <li class="nav-section">SEGURIDAD</li>
+    <li class="nav-item">
+        <a href="<?php echo $base; ?>auditoria/index.php" class="nav-link <?php echo $current_dir === 'auditoria' ? 'active' : ''; ?>">
+            <i class="fas fa-shield-alt"></i>
+            <span>Auditoría</span>
+        </a>
+    </li>
+    
     <!-- Finanzas -->
     <li class="nav-section">FINANZAS</li>
     <li class="nav-item has-submenu">

@@ -7,6 +7,7 @@
 
 session_start();
 require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../includes/auditoria.php';
 
 // Verificar permisos
 $roles_permitidos = ['super_admin', 'obispo', 'super_conferencia'];
@@ -187,6 +188,17 @@ try {
     
     // Confirmar transacción
     $conexion->commit();
+    
+    // Registrar auditoría
+    $descripcion = ucfirst($cargo) . " de " . $ministerio['nombre'] . " asignado: " . $miembro['nombre'] . " " . $miembro['apellido'];
+    $datos_asignacion = [
+        'conferencia_id' => $conferencia_id,
+        'ministerio' => $ministerio['nombre'],
+        'miembro' => $miembro['nombre'] . ' ' . $miembro['apellido'],
+        'cargo' => $cargo,
+        'fecha_inicio' => $fecha_inicio
+    ];
+    auditoria_asignar('ministerios', 'ministerio_lideres_conferencia', $miembro_id, $descripcion, $datos_asignacion);
     
     $mensaje = ucfirst($cargo) . " asignado: " . $miembro['nombre'] . " " . $miembro['apellido'] . " → " . $ministerio['nombre'] . $mensaje_usuario;
     header('Location: index.php?conferencia=' . $conferencia_id . '&success=' . urlencode($mensaje));

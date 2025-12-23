@@ -1,6 +1,7 @@
 <?php 
 session_start();
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../admin/includes/auditoria.php';
 
 $mensaje_error = "";
 $mostrar_modal_cedula = false;
@@ -63,10 +64,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['cedula']          = $row['numero_documento'];
                     $_SESSION['login_por_cedula'] = true;
 
+                    // Registrar auditoría de login exitoso
+                    auditoria_login($row['id'], $row['nombre'] . ' ' . $row['apellido']);
+
                     // Redirección al dashboard unificado
                     header("Location: ../admin/dashboard.php");
                     exit;
                 } else {
+                    // Registrar intento fallido
+                    auditoria_login_fallido($cedula);
                     $mensaje_error = "Contraseña incorrecta para esta cédula.";
                     $mostrar_modal_cedula = true;
                 }
@@ -162,9 +168,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (password_verify($clave, $rowU['clave'])) {
                         $usuarioEncontrado = $rowU;
                     } else {
+                        // Registrar intento fallido
+                        auditoria_login_fallido($entrada);
                         $mensaje_error = "Contraseña incorrecta.";
                     }
                 } else {
+                    // Registrar intento con usuario no existente
+                    auditoria_login_fallido($entrada);
                     $mensaje_error = "Usuario no encontrado.";
                 }
                 $stmtUsr->close();
@@ -183,6 +193,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['conferencia_id']  = $usuarioEncontrado['conferencia_id'];
                 $_SESSION['distrito_id']     = $usuarioEncontrado['distrito_id'];
                 $_SESSION['iglesia_id']      = $usuarioEncontrado['iglesia_id'];
+
+                // Registrar auditoría de login exitoso
+                auditoria_login($usuarioEncontrado['id'], $usuarioEncontrado['nombre'] . ' ' . $usuarioEncontrado['apellido']);
 
                 // Redirección al dashboard unificado
                 header("Location: ../admin/dashboard.php");
