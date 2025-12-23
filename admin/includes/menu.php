@@ -83,18 +83,16 @@ if (isset($conexion) && $conexion !== null) {
             $conferencia_superintende = $result->fetch_assoc();
         }
         
-        // 3. BUSCAR SI ES PRESIDENTE/DIRECTIVA DE MINISTERIO DE CONFERENCIA (DESHABILITADO TEMPORALMENTE)
-        // NOTA: Requiere columna usuarios.miembro_id - Restaurar cuando se implemente correctamente
-        /*
-        if (isset($_SESSION['conferencia_id']) && $usuario_id > 0) {
-            $conferencia_id = intval($_SESSION['conferencia_id']);
-            $sql = "SELECT mcl.*, am.nombre AS area_nombre, c.nombre AS cargo_nombre
-                    FROM ministerios_conferencia_lideres mcl
-                    INNER JOIN areas_ministeriales am ON mcl.area_id = am.id
-                    INNER JOIN cargos_ministerio_conf c ON mcl.cargo_id = c.id
-                    INNER JOIN usuarios u ON u.miembro_id = mcl.miembro_id AND u.miembro_id IS NOT NULL
-                    WHERE u.id = $usuario_id AND mcl.conferencia_id = $conferencia_id AND mcl.activo = 1
-                    ORDER BY c.orden ASC
+        // 3. BUSCAR SI ES PRESIDENTE/DIRECTIVA DE MINISTERIO DE CONFERENCIA
+        if ($usuario_id > 0) {
+            $sql = "SELECT mlc.id, mlc.ministerio_id, mlc.cargo, mlc.conferencia_id,
+                           m.nombre as ministerio_nombre,
+                           c.nombre as conferencia_nombre
+                    FROM ministerio_lideres_conferencia mlc
+                    INNER JOIN ministerios m ON mlc.ministerio_id = m.id
+                    INNER JOIN conferencias c ON mlc.conferencia_id = c.id
+                    INNER JOIN usuarios u ON u.miembro_id = mlc.miembro_id
+                    WHERE u.id = $usuario_id AND mlc.activo = 1
                     LIMIT 1";
             $result = $conexion->query($sql);
             if ($result && $result->num_rows > 0) {
@@ -102,7 +100,6 @@ if (isset($conexion) && $conexion !== null) {
                 $ministerio_conf_info = $result->fetch_assoc();
             }
         }
-        */
         
         // 4. BUSCAR SI ES LÍDER DE MINISTERIO LOCAL (Iglesia) - Solo para rol lider_ministerio
         if ($rol === 'lider_ministerio' && isset($_SESSION['iglesia_id'])) {
@@ -280,12 +277,13 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
     
     <?php if ($es_lider_ministerio_conf && $ministerio_conf_info): ?>
     <li class="nav-section">
-        <i class="fas fa-crown text-info me-1"></i> MINISTERIO DE CONFERENCIA
+        <i class="fas fa-crown text-info me-1"></i> MINISTERIO CONFERENCIA
     </li>
     <li class="nav-item">
         <a href="<?php echo $base; ?>ministerio_conferencia/index.php" class="nav-link">
             <i class="fas fa-users-cog"></i>
-            <span><?php echo htmlspecialchars($ministerio_conf_info['area_nombre']); ?></span>
+            <span><?php echo htmlspecialchars($ministerio_conf_info['ministerio_nombre']); ?></span>
+            <span class="badge bg-info ms-1"><?php echo ucfirst($ministerio_conf_info['cargo']); ?></span>
         </a>
     </li>
     <?php endif; ?>
@@ -349,8 +347,8 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
     <li class="nav-item">
         <a href="<?php echo $base; ?>ministerio_conferencia/index.php" class="nav-link">
             <i class="fas fa-users-cog"></i>
-            <span><?php echo htmlspecialchars($ministerio_conf_info['area_nombre']); ?></span>
-            <span class="badge bg-info ms-auto"><?php echo htmlspecialchars($ministerio_conf_info['cargo_nombre']); ?></span>
+            <span><?php echo htmlspecialchars($ministerio_conf_info['ministerio_nombre']); ?></span>
+            <span class="badge bg-info ms-auto"><?php echo ucfirst($ministerio_conf_info['cargo']); ?></span>
         </a>
     </li>
     <?php endif; ?>

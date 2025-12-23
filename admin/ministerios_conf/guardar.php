@@ -144,8 +144,12 @@ try {
         $stmt->close();
         
         if ($usuario_existente) {
-            // YA TIENE USUARIO - El menú detectará automáticamente su rol de líder
-            $mensaje_usuario = " (El miembro ya tiene acceso al sistema - el menú mostrará su rol de líder automáticamente)";
+            // YA TIENE USUARIO - Actualizar miembro_id para que el menú detecte su rol
+            $stmt = $conexion->prepare("UPDATE usuarios SET miembro_id = ? WHERE id = ?");
+            $stmt->bind_param("ii", $miembro_id, $usuario_existente['id']);
+            $stmt->execute();
+            $stmt->close();
+            $mensaje_usuario = " (Usuario vinculado - el menú mostrará su rol de líder automáticamente)";
         } else {
             // NO TIENE USUARIO - Solo crear si es presidente
             if ($cargo === 'presidente') {
@@ -153,9 +157,9 @@ try {
                 $clave_sin_guiones = str_replace('-', '', $cedula);
                 $clave_hash = password_hash($clave_sin_guiones, PASSWORD_DEFAULT);
                 
-                $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, apellido, usuario, clave, rol_id, conferencia_id, activo)
-                                            VALUES (?, ?, ?, ?, ?, ?, 1)");
-                $stmt->bind_param("ssssii", $miembro['nombre'], $miembro['apellido'], $cedula, $clave_hash, $rol_lider, $conferencia_id);
+                $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, apellido, usuario, clave, rol_id, conferencia_id, miembro_id, activo)
+                                            VALUES (?, ?, ?, ?, ?, ?, ?, 1)");
+                $stmt->bind_param("ssssiis", $miembro['nombre'], $miembro['apellido'], $cedula, $clave_hash, $rol_lider, $conferencia_id, $miembro_id);
                 $stmt->execute();
                 $stmt->close();
                 
@@ -163,6 +167,21 @@ try {
             } else {
                 $mensaje_usuario = " (No se creó usuario - solo el presidente obtiene acceso automático)";
             }
+        }
+    } else {
+        // Intentar vincular por nombre/apellido si no tiene cédula
+        $stmt = $conexion->prepare("SELECT id FROM usuarios WHERE UPPER(nombre) = UPPER(?) AND UPPER(apellido) = UPPER(?)");
+        $stmt->bind_param("ss", $miembro['nombre'], $miembro['apellido']);
+        $stmt->execute();
+        $usuario_por_nombre = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        
+        if ($usuario_por_nombre) {
+            $stmt = $conexion->prepare("UPDATE usuarios SET miembro_id = ? WHERE id = ?");
+            $stmt->bind_param("ii", $miembro_id, $usuario_por_nombre['id']);
+            $stmt->execute();
+            $stmt->close();
+            $mensaje_usuario = " (Usuario vinculado por nombre)";
         }
     }
     

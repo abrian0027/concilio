@@ -26,12 +26,9 @@ if (!$conferencia_id) {
     exit;
 }
 
-// Buscar al miembro asociado a este usuario por nombre y apellido
-$stmt = $conexion->prepare("SELECT m.*, u.nombre AS u_nombre, u.apellido AS u_apellido, u.iglesia_id AS u_iglesia_id
+// Buscar al miembro asociado a este usuario usando miembro_id directamente
+$stmt = $conexion->prepare("SELECT u.miembro_id, u.nombre AS u_nombre, u.apellido AS u_apellido, u.iglesia_id AS u_iglesia_id
                             FROM usuarios u
-                            LEFT JOIN miembros m ON u.iglesia_id = m.iglesia_id 
-                                AND UPPER(m.nombre) = UPPER(u.nombre)
-                                AND UPPER(m.apellido) = UPPER(u.apellido)
                             WHERE u.id = ?
                             LIMIT 1");
 $stmt->bind_param("i", $usuario_id);
@@ -44,17 +41,17 @@ if (!$result) {
     exit;
 }
 
-$miembro_id = $result['id'] ?? 0;
+$miembro_id = $result['miembro_id'] ?? 0;
 $iglesia_usuario = $result['u_iglesia_id'];
 
 // Verificar si este usuario es presidente o parte de la directiva de algún ministerio de conferencia
-$stmt = $conexion->prepare("SELECT mcl.*, am.nombre AS area_nombre, am.id AS area_id, 
-                            c.nombre AS cargo_nombre, c.orden AS cargo_orden, c.id AS cargo_id
-                            FROM ministerios_conferencia_lideres mcl
-                            INNER JOIN areas_ministeriales am ON mcl.area_id = am.id
-                            INNER JOIN cargos_ministerio_conf c ON mcl.cargo_id = c.id
-                            WHERE mcl.miembro_id = ? AND mcl.conferencia_id = ? AND mcl.activo = 1
-                            ORDER BY c.orden ASC
+// Usando la tabla ministerio_lideres_conferencia (estructura actual)
+$stmt = $conexion->prepare("SELECT mlc.*, 
+                            m.nombre AS ministerio_nombre, m.id AS ministerio_id,
+                            mlc.cargo AS cargo_nombre
+                            FROM ministerio_lideres_conferencia mlc
+                            INNER JOIN ministerios m ON mlc.ministerio_id = m.id
+                            WHERE mlc.miembro_id = ? AND mlc.conferencia_id = ? AND mlc.activo = 1
                             LIMIT 1");
 $stmt->bind_param("ii", $miembro_id, $conferencia_id);
 $stmt->execute();
@@ -76,10 +73,10 @@ if (!$liderazgo) {
     exit;
 }
 
-$area_id = $liderazgo['area_id'];
-$area_nombre = $liderazgo['area_nombre'];
-$cargo_nombre = $liderazgo['cargo_nombre'];
-$cargo_id = $liderazgo['cargo_id'];
+// Usar nombres de la nueva estructura
+$ministerio_id = $liderazgo['ministerio_id'];
+$area_nombre = $liderazgo['ministerio_nombre'];  // Para compatibilidad con el resto del código
+$cargo_nombre = ucfirst($liderazgo['cargo_nombre']);
 
 // Obtener información de la conferencia
 $stmt = $conexion->prepare("SELECT * FROM conferencias WHERE id = ?");
@@ -89,17 +86,6 @@ $conferencia = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 $conferencia_nombre = $conferencia['nombre'] ?? 'Conferencia';
-
-// MAPEO: areas_ministeriales → ministerios
-$area_to_ministerio = [
-    1 => 1,  // Damas
-    2 => 2,  // Caballeros
-    3 => 3,  // Jóvenes
-    4 => 4,  // Niños
-    5 => 5   // Adolescentes
-];
-
-$ministerio_id = $area_to_ministerio[$area_id] ?? 0;
 
 // Obtener estadísticas GLOBALES del ministerio en toda la conferencia
 $sql = "SELECT 
@@ -141,25 +127,25 @@ $distritos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
 // Obtener TODA la directiva del ministerio de conferencia
-$sql = "SELECT mcl.*, 
+$sql = "SELECT mlc.*, 
         CONCAT(m.nombre, ' ', m.apellido) AS miembro_nombre,
         m.telefono,
-        c.nombre AS cargo_nombre, c.orden AS cargo_orden,
+        mlc.cargo AS cargo_nombre,
         i.nombre AS iglesia_nombre, i.codigo AS iglesia_codigo
-        FROM ministerios_conferencia_lideres mcl
-        INNER JOIN miembros m ON mcl.miembro_id = m.id
-        INNER JOIN cargos_ministerio_conf c ON mcl.cargo_id = c.id
+        FROM ministerio_lideres_conferencia mlc
+        INNER JOIN miembros m ON mlc.miembro_id = m.id
         INNER JOIN iglesias i ON m.iglesia_id = i.id
-        WHERE mcl.conferencia_id = ? AND mcl.area_id = ? AND mcl.activo = 1
-        ORDER BY c.orden ASC";
+        WHERE mlc.conferencia_id = ? AND mlc.ministerio_id = ? AND mlc.activo = 1
+        ORDER BY FIELD(mlc.cargo, 'presidente', 'vicepresidente', 'secretario', 'tesorero', 'vocal')";
 
 $stmt = $conexion->prepare($sql);
-$stmt->bind_param("ii", $conferencia_id, $area_id);
+$stmt->bind_param("ii", $conferencia_id, $ministerio_id);
 $stmt->execute();
 $directiva = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
 // Obtener LÍDERES LOCALES (de cada iglesia)
+// Nota: area_lideres usa area_id que corresponde a ministerio_id en los primeros ministerios
 $sql = "SELECT 
         al.id, al.tipo,
         CONCAT(m.nombre, ' ', m.apellido) AS lider_nombre,
@@ -178,7 +164,7 @@ $sql = "SELECT
         ORDER BY d.nombre, i.nombre";
 
 $stmt = $conexion->prepare($sql);
-$stmt->bind_param("iii", $ministerio_id, $area_id, $conferencia_id);
+$stmt->bind_param("iii", $ministerio_id, $ministerio_id, $conferencia_id);
 $stmt->execute();
 $lideres_locales = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
