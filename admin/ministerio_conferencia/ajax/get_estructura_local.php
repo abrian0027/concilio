@@ -14,31 +14,23 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
-// Obtener parámetros
+// Obtener parámetros - ahora usa ministerio_id directamente
 $iglesia_id = isset($_GET['iglesia_id']) ? intval($_GET['iglesia_id']) : 0;
-$area_id = isset($_GET['area_id']) ? intval($_GET['area_id']) : 0;
+$ministerio_id = isset($_GET['ministerio_id']) ? intval($_GET['ministerio_id']) : 0;
 
-if ($iglesia_id <= 0 || $area_id <= 0) {
+// Compatibilidad: si viene area_id, usarlo como ministerio_id
+if ($ministerio_id <= 0 && isset($_GET['area_id'])) {
+    $ministerio_id = intval($_GET['area_id']);
+}
+
+if ($iglesia_id <= 0 || $ministerio_id <= 0) {
     echo json_encode(['success' => false, 'message' => 'Parámetros inválidos']);
     exit;
 }
 
 try {
-    // MAPEO: areas_ministeriales → ministerios
-    $area_to_ministerio = [
-        1 => 1,  // Damas
-        2 => 2,  // Caballeros
-        3 => 3,  // Jóvenes
-        4 => 4,  // Niños
-        5 => 5   // Adolescentes
-    ];
-    
-    $ministerio_id = $area_to_ministerio[$area_id] ?? 0;
-    
-    if ($ministerio_id <= 0) {
-        echo json_encode(['success' => false, 'message' => 'Área ministerial no válida']);
-        exit;
-    }
+    // area_id = ministerio_id para las consultas de area_lideres
+    $area_id = $ministerio_id;
     
     // 1. OBTENER LÍDER PRINCIPAL
     $sql = "SELECT al.*, 

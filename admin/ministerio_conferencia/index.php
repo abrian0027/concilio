@@ -415,8 +415,8 @@ require_once __DIR__ . '/../includes/header.php';
                                        data-iglesia-id="<?php echo $lider['iglesia_id']; ?>"
                                        data-iglesia-nombre="<?php echo htmlspecialchars($lider['iglesia_nombre']); ?>"
                                        data-iglesia-codigo="<?php echo htmlspecialchars($lider['iglesia_codigo']); ?>"
-                                       data-area-id="<?php echo $area_id; ?>"
-                                       data-area-nombre="<?php echo htmlspecialchars($area_nombre); ?>"
+                                       data-ministerio-id="<?php echo $ministerio_id; ?>"
+                                       data-ministerio-nombre="<?php echo htmlspecialchars($area_nombre); ?>"
                                        data-distrito-nombre="<?php echo htmlspecialchars($lider['distrito_nombre']); ?>"
                                        style="cursor: pointer;"
                                        title="Ver estructura del ministerio">
@@ -595,13 +595,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const iglesiaId = this.dataset.iglesiaId;
             const iglesiaNombre = this.dataset.iglesiaNombre;
             const iglesiaCodigo = this.dataset.iglesiaCodigo;
-            const areaId = this.dataset.areaId;
-            const areaNombre = this.dataset.areaNombre;
+            const ministerioId = this.dataset.ministerioId;
+            const ministerioNombre = this.dataset.ministerioNombre;
             const distritoNombre = this.dataset.distritoNombre;
             
             // Actualizar título del modal
             document.getElementById('modal-titulo').innerHTML = 
-                `Ministerio de ${areaNombre} - ${iglesiaCodigo}`;
+                `Ministerio de ${ministerioNombre} - ${iglesiaCodigo}`;
             
             // Mostrar modal
             const modal = new bootstrap.Modal(document.getElementById('modalEstructuraLocal'));
@@ -613,7 +613,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('modal-error').style.display = 'none';
             
             // Hacer petición AJAX
-            fetch(`ajax/get_estructura_local.php?iglesia_id=${iglesiaId}&area_id=${areaId}`)
+            fetch(`ajax/get_estructura_local.php?iglesia_id=${iglesiaId}&ministerio_id=${ministerioId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
