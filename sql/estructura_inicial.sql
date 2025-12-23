@@ -1,0 +1,1 @@
+-- Usa aquí la misma estructura_inicial.sql que ya importaste anteriormente.

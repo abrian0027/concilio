@@ -1,0 +1,77 @@
+# ==========================================
+# .gitignore - Sistema Concilio
+# ==========================================
+
+# ===== ARCHIVOS DE CONFIGURACIÓN SENSIBLES =====
+# Descomentar si tu config.php tiene contraseñas reales
+# config/config.php
+
+# ===== LOGS Y CACHE =====
+*.log
+*.cache
+error_log
+debug.log
+
+# ===== ARCHIVOS TEMPORALES =====
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+
+# ===== SISTEMA OPERATIVO =====
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ===== IDEs Y EDITORES =====
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains (PhpStorm, etc.)
+.idea/
+*.iml
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ===== DEPENDENCIAS =====
+/vendor/
+/node_modules/
+
+# ===== UPLOADS DE USUARIOS =====
+# Comentar si quieres versionar las imágenes de ejemplo
+# uploads/miembros/*
+# !uploads/miembros/.gitkeep
+
+# ===== BACKUPS LOCALES =====
+backup_*/
+*_backup/
+*.sql.gz
+backup_antes_reversion_*/
+
+# ===== ARCHIVOS DE DESARROLLO/TEST =====
+test_*.php
+debug_*.php
+*.test.php
+
+# ===== ARCHIVOS COMPRIMIDOS =====
+*.zip
+*.rar
+*.7z
+*.tar.gz
+
+# ===== ENVIRONMENT =====
+.env
+.env.local
+.env.*.local
