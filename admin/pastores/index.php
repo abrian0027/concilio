@@ -221,9 +221,9 @@ $conferencias = $conexion->query("SELECT id, nombre FROM conferencias WHERE acti
                             <td>
                                 <?php if (!empty($pastor['foto'])): ?>
                                     <img src="../../uploads/pastores/<?php echo htmlspecialchars($pastor['foto']); ?>" 
-                                         alt="Foto" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                         alt="Foto" style="width: 40px; height: 40px; border-radius: 10px; object-fit: cover; border: 2px solid #0dcaf0;">
                                 <?php else: ?>
-                                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center;">
+                                    <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%); display: flex; align-items: center; justify-content: center; border: 2px solid #0dcaf0;">
                                         <i class="fas fa-user" style="color: #999;"></i>
                                     </div>
                                 <?php endif; ?>

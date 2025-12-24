@@ -198,9 +198,9 @@ if ($iglesia_id > 0) {
                                 <div class="d-flex align-items-center gap-2 mb-2 p-2 bg-light rounded">
                                     <?php if ($lider['foto']): ?>
                                         <img src="../../../uploads/miembros/<?php echo htmlspecialchars($lider['foto']); ?>" 
-                                             alt="Foto" class="rounded-circle" style="width: 42px; height: 42px; object-fit: cover;">
+                                             alt="Foto" style="width: 42px; height: 42px; object-fit: cover; border-radius: 10px; border: 2px solid #0dcaf0;">
                                     <?php else: ?>
-                                        <div class="rounded-circle bg-white d-flex align-items-center justify-content-center border" style="width: 42px; height: 42px;">
+                                        <div style="width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%); display: flex; align-items: center; justify-content: center; border: 2px solid #0dcaf0;">
                                             <i class="fas fa-user text-muted"></i>
                                         </div>
                                     <?php endif; ?>

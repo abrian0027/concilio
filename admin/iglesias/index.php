@@ -4,14 +4,21 @@ declare(strict_types=1);
 $page_title = "Gestión de Iglesias";
 require_once __DIR__ . '/../includes/header.php';
 
-// Solo Super Admin puede ver esto
-if ($ROL_NOMBRE !== 'super_admin') {
+// Super Admin o Superintendente de Conferencia
+if (!in_array($ROL_NOMBRE, ['super_admin', 'super_conferencia'])) {
     echo "<div class='alert alert-danger'><i class='fas fa-exclamation-triangle'></i> No tienes permiso para acceder a este módulo.</div>";
     require_once __DIR__ . '/../includes/footer.php';
     exit;
 }
 
 require_once __DIR__ . '/../../config/config.php';
+
+// Filtrar por conferencia si es superintendente
+$filtro_conferencia = null;
+$es_super_conferencia = ($ROL_NOMBRE === 'super_conferencia');
+if ($es_super_conferencia && isset($_SESSION['conferencia_id'])) {
+    $filtro_conferencia = (int)$_SESSION['conferencia_id'];
+}
 
 // Obtener todas las iglesias con conferencia y distrito
 try {
@@ -20,8 +27,13 @@ try {
                    c.nombre AS conferencia_nombre, c.codigo AS conferencia_codigo
             FROM iglesias i
             INNER JOIN distritos d ON i.distrito_id = d.id
-            INNER JOIN conferencias c ON d.conferencia_id = c.id
-            ORDER BY c.nombre, d.nombre, i.codigo";
+            INNER JOIN conferencias c ON d.conferencia_id = c.id";
+    
+    if ($filtro_conferencia) {
+        $sql .= " WHERE d.conferencia_id = " . $filtro_conferencia;
+    }
+    
+    $sql .= " ORDER BY c.nombre, d.nombre, i.codigo";
     $resultado = $conexion->query($sql);
 } catch (Exception $e) {
     error_log("Error al obtener iglesias: " . $e->getMessage());

@@ -134,10 +134,10 @@ $estados_miembro = [
                 <div class="mb-3">
                     <?php if ($miembro['foto'] && file_exists(__DIR__ . '/../../uploads/miembros/' . $miembro['foto'])): ?>
                         <img src="../../uploads/miembros/<?php echo htmlspecialchars($miembro['foto']); ?>" 
-                             alt="Foto" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #dee2e6;">
+                             alt="Foto" class="profile-photo-large" style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #0dcaf0; border-radius: 18px;">
                     <?php else: ?>
-                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light" 
-                             style="width: 150px; height: 150px; border: 3px solid #dee2e6;">
+                        <div class="d-inline-flex align-items-center justify-content-center" 
+                             style="width: 150px; height: 150px; border: 3px solid #0dcaf0; border-radius: 18px; background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%);">
                             <i class="fas fa-user fa-4x text-muted"></i>
                         </div>
                     <?php endif; ?>

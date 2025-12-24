@@ -242,6 +242,71 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
         </ul>
     </li>
 
+<?php elseif ($rol === 'super_conferencia'): ?>
+    <!-- ==================== SUPERINTENDENTE DE CONFERENCIA ==================== -->
+    
+    <li class="nav-section">MI CONFERENCIA</li>
+    <li class="nav-item">
+        <a href="<?php echo $base; ?>panel_superintendente.php" class="nav-link <?php echo $current_page === 'panel_superintendente.php' ? 'active' : ''; ?>">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Panel General</span>
+        </a>
+    </li>
+    
+    <!-- Administración Conferencia -->
+    <li class="nav-section">ADMINISTRACIÓN</li>
+    
+    <li class="nav-item">
+        <a href="<?php echo $base; ?>distritos/index.php" class="nav-link <?php echo $current_dir === 'distritos' ? 'active' : ''; ?>">
+            <i class="fas fa-map-marked-alt"></i>
+            <span>Distritos</span>
+        </a>
+    </li>
+    
+    <li class="nav-item">
+        <a href="<?php echo $base; ?>iglesias/index.php" class="nav-link <?php echo $current_dir === 'iglesias' ? 'active' : ''; ?>">
+            <i class="fas fa-church"></i>
+            <span>Iglesias</span>
+        </a>
+    </li>
+    
+    <li class="nav-item">
+        <a href="<?php echo $base; ?>pastores/index.php" class="nav-link <?php echo $current_dir === 'pastores' ? 'active' : ''; ?>">
+            <i class="fas fa-user-tie"></i>
+            <span>Pastores</span>
+        </a>
+    </li>
+    
+    <!-- Gestión -->
+    <li class="nav-section">GESTIÓN</li>
+    
+    <li class="nav-item">
+        <a href="<?php echo $base; ?>miembros/index.php" class="nav-link <?php echo $current_dir === 'miembros' ? 'active' : ''; ?>">
+            <i class="fas fa-users"></i>
+            <span>Miembros</span>
+        </a>
+    </li>
+    
+    <li class="nav-item">
+        <a href="<?php echo $base; ?>ministerios_conf/index.php" class="nav-link <?php echo $current_dir === 'ministerios_conf' ? 'active' : ''; ?>">
+            <i class="fas fa-hands-praying"></i>
+            <span>Ministerios Conf.</span>
+        </a>
+    </li>
+    
+    <li class="nav-item has-submenu">
+        <a href="#" class="nav-link">
+            <i class="fas fa-chart-bar"></i>
+            <span>Reportes</span>
+            <i class="fas fa-chevron-down arrow"></i>
+        </a>
+        <ul class="submenu">
+            <li><a href="<?php echo $base; ?>reportes/miembros_conferencia.php"><i class="fas fa-circle"></i> Miembros</a></li>
+            <li><a href="<?php echo $base; ?>reportes/distritos_conferencia.php"><i class="fas fa-circle"></i> Por Distrito</a></li>
+            <li><a href="<?php echo $base; ?>reportes/ministerios_conferencia.php"><i class="fas fa-circle"></i> Por Ministerio</a></li>
+        </ul>
+    </li>
+
 <?php elseif ($rol === 'super_distrito'): ?>
     <!-- ==================== SUPERVISOR DISTRITO ==================== -->
     

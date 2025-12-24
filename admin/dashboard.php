@@ -53,6 +53,60 @@ try {
             ['titulo' => 'Distritos', 'valor' => $distritos, 'icono' => 'fa-map-marked-alt', 'color' => 'bg-warning', 'link' => 'distritos/index.php'],
             ['titulo' => 'Pastores', 'valor' => $pastores, 'icono' => 'fa-user-tie', 'color' => 'bg-info', 'link' => 'pastores/index.php'],
         ];
+    
+    } elseif ($ROL_NOMBRE === 'super_conferencia') {
+        // ==================== SUPERINTENDENTE DE CONFERENCIA ====================
+        $conferencia_id = $_SESSION['conferencia_id'] ?? 0;
+        
+        if ($conferencia_id > 0) {
+            // Contar distritos de la conferencia
+            $stmt = $conexion->prepare("SELECT COUNT(*) as total FROM distritos WHERE conferencia_id = ? AND activo = 1");
+            $stmt->bind_param("i", $conferencia_id);
+            $stmt->execute();
+            $distritos = $stmt->get_result()->fetch_assoc()['total'];
+            $stmt->close();
+            
+            // Contar iglesias de la conferencia
+            $stmt = $conexion->prepare("
+                SELECT COUNT(*) as total FROM iglesias i
+                INNER JOIN distritos d ON i.distrito_id = d.id
+                WHERE d.conferencia_id = ? AND i.activo = 1
+            ");
+            $stmt->bind_param("i", $conferencia_id);
+            $stmt->execute();
+            $iglesias = $stmt->get_result()->fetch_assoc()['total'];
+            $stmt->close();
+            
+            // Contar miembros de la conferencia
+            $stmt = $conexion->prepare("
+                SELECT COUNT(*) as total FROM miembros m
+                INNER JOIN iglesias i ON m.iglesia_id = i.id
+                INNER JOIN distritos d ON i.distrito_id = d.id
+                WHERE d.conferencia_id = ? AND m.estado = 'activo'
+            ");
+            $stmt->bind_param("i", $conferencia_id);
+            $stmt->execute();
+            $miembros = $stmt->get_result()->fetch_assoc()['total'];
+            $stmt->close();
+            
+            // Contar pastores de la conferencia
+            $stmt = $conexion->prepare("SELECT COUNT(*) as total FROM pastores WHERE conferencia_id = ? AND activo = 1");
+            $stmt->bind_param("i", $conferencia_id);
+            $stmt->execute();
+            $pastores = $stmt->get_result()->fetch_assoc()['total'];
+            $stmt->close();
+            
+            $stats = [
+                ['titulo' => 'Distritos', 'valor' => $distritos, 'icono' => 'fa-map-marked-alt', 'color' => 'bg-gradient-primary', 'link' => 'distritos/index.php'],
+                ['titulo' => 'Iglesias', 'valor' => $iglesias, 'icono' => 'fa-church', 'color' => 'bg-success', 'link' => 'iglesias/index.php'],
+                ['titulo' => 'Miembros', 'valor' => $miembros, 'icono' => 'fa-users', 'color' => 'bg-info', 'link' => 'miembros/index.php'],
+                ['titulo' => 'Pastores', 'valor' => $pastores, 'icono' => 'fa-user-tie', 'color' => 'bg-warning', 'link' => 'pastores/index.php'],
+            ];
+        } else {
+            $stats = [
+                ['titulo' => 'Sin conferencia', 'valor' => '⚠️', 'icono' => 'fa-exclamation-triangle', 'color' => 'bg-warning', 'link' => '#'],
+            ];
+        }
         
     } elseif ($ROL_NOMBRE === 'super_distrito') {
         // ==================== SUPERVISOR DISTRITO ====================

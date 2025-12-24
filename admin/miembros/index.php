@@ -266,8 +266,8 @@ $hay_filtros = $filtro_ministerio > 0 || $filtro_estado !== '' || $filtro_estado
 .member-card-menu{position:absolute;top:0.5rem;right:0.5rem}
 .btn-card-menu{background:transparent;border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#9ca3af;cursor:pointer;transition:all 0.2s ease}
 .btn-card-menu:hover{background:rgba(0,0,0,0.05);color:#374151}
-.member-avatar{width:70px;height:70px;border-radius:50%;margin:0 auto 0.75rem;object-fit:cover;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
-.member-avatar-placeholder{width:70px;height:70px;border-radius:50%;margin:0 auto 0.75rem;background:linear-gradient(135deg,#0891b2 0%,#0dcaf0 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;font-weight:700;box-shadow:0 4px 12px rgba(8,145,178,0.3)}
+.member-avatar{width:70px;height:70px;border-radius:14px;margin:0 auto 0.75rem;object-fit:cover;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.member-avatar-placeholder{width:70px;height:70px;border-radius:14px;margin:0 auto 0.75rem;background:linear-gradient(135deg,#0891b2 0%,#0dcaf0 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;font-weight:700;box-shadow:0 4px 12px rgba(8,145,178,0.3)}
 .member-name{font-size:1rem;font-weight:600;color:#1f2937;margin-bottom:0.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .member-document{font-size:0.8rem;color:#9ca3af}
 .member-card-body{padding:0.75rem 1rem;border-top:1px solid #f0f0f0}

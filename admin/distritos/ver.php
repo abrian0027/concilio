@@ -141,9 +141,9 @@ $lista_iglesias = $iglesias->get_result();
                 <div style="display: flex; gap: 1rem; align-items: center;">
                     <?php if (!empty($dist['sup_foto'])): ?>
                         <img src="../../uploads/pastores/<?php echo htmlspecialchars($dist['sup_foto']); ?>" 
-                             alt="Foto" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #11998e;">
+                             alt="Foto" style="width: 80px; height: 80px; border-radius: 14px; object-fit: cover; border: 3px solid #0dcaf0;">
                     <?php else: ?>
-                        <div style="width: 80px; height: 80px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 80px; height: 80px; border-radius: 14px; background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%); display: flex; align-items: center; justify-content: center; border: 3px solid #0dcaf0;">
                             <i class="fas fa-user" style="font-size: 2rem; color: #999;"></i>
                         </div>
                     <?php endif; ?>

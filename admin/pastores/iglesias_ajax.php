@@ -106,9 +106,9 @@ $historial = $stmt->get_result();
             <div class="card-body" style="text-align: center;">
                 <?php if (!empty($pastor['foto'])): ?>
                     <img src="../../uploads/pastores/<?php echo htmlspecialchars($pastor['foto']); ?>" 
-                         alt="Foto" style="width: 200px; height: 200px; border-radius: 50%; object-fit: cover; border: 4px solid #667eea; margin-bottom: 1rem;">
+                         alt="Foto" style="width: 200px; height: 200px; border-radius: 20px; object-fit: cover; border: 4px solid #0dcaf0; margin-bottom: 1rem;">
                 <?php else: ?>
-                    <div style="width: 200px; height: 200px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; border: 4px solid #667eea;">
+                    <div style="width: 200px; height: 200px; border-radius: 20px; background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; border: 4px solid #0dcaf0;">
                         <i class="fas fa-user" style="font-size: 5rem; color: #999;"></i>
                     </div>
                 <?php endif; ?>

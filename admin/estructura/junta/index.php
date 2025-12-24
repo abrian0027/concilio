@@ -243,9 +243,9 @@ if ($iglesia_id > 0) {
                                     <td>
                                         <?php if ($mj['foto']): ?>
                                             <img src="../../../uploads/miembros/<?php echo htmlspecialchars($mj['foto']); ?>" 
-                                                 alt="Foto" class="rounded-circle" style="width: 45px; height: 45px; object-fit: cover;">
+                                                 alt="Foto" style="width: 45px; height: 45px; object-fit: cover; border-radius: 10px; border: 2px solid #0dcaf0;">
                                         <?php else: ?>
-                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                            <div style="width: 45px; height: 45px; border-radius: 10px; background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%); display: flex; align-items: center; justify-content: center; border: 2px solid #0dcaf0;">
                                                 <i class="fas fa-user text-muted"></i>
                                             </div>
                                         <?php endif; ?>

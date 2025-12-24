@@ -345,7 +345,7 @@ function getInicialesEstructura($nombre, $apellido) {
 .pastor-avatar {
     width: 80px;
     height: 80px;
-    border-radius: 50%;
+    border-radius: 14px;
     object-fit: cover;
     border: 4px solid #6366f1;
     box-shadow: 0 4px 15px rgba(99,102,241,0.3);
@@ -355,7 +355,7 @@ function getInicialesEstructura($nombre, $apellido) {
 .pastor-avatar-placeholder {
     width: 80px;
     height: 80px;
-    border-radius: 50%;
+    border-radius: 14px;
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     display: flex;
     align-items: center;
@@ -390,12 +390,12 @@ function getInicialesEstructura($nombre, $apellido) {
     font-size: 0.85rem;
 }
 
-.junta-member img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.junta-member img { width: 32px; height: 32px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
 
 .junta-avatar-sm {
     width: 32px;
     height: 32px;
-    border-radius: 50%;
+    border-radius: 10px;
     background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
     display: flex;
     align-items: center;
@@ -458,12 +458,12 @@ function getInicialesEstructura($nombre, $apellido) {
 
 .ministerio-lideres { font-size: 0.8rem; color: #6b7280; }
 .ministerio-lideres .lider-item { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.35rem; }
-.ministerio-lideres .lider-avatar { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+.ministerio-lideres .lider-avatar { width: 22px; height: 22px; border-radius: 8px; object-fit: cover; }
 
 .ministerio-lideres .lider-avatar-mini {
     width: 22px;
     height: 22px;
-    border-radius: 50%;
+    border-radius: 8px;
     background: #0891b2;
     color: #fff;
     display: flex;

@@ -95,9 +95,9 @@ $stmt->close();
                                 <td>
                                     <?php if ($m['foto']): ?>
                                         <img src="../../../uploads/miembros/<?php echo htmlspecialchars($m['foto']); ?>" 
-                                             alt="Foto" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                             alt="Foto" style="width: 40px; height: 40px; border-radius: 10px; object-fit: cover; border: 2px solid #0dcaf0;">
                                     <?php else: ?>
-                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: #e9ecef; display: flex; align-items: center; justify-content: center;">
+                                        <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%); display: flex; align-items: center; justify-content: center; border: 2px solid #0dcaf0;">
                                             <i class="fas fa-user" style="color: #adb5bd;"></i>
                                         </div>
                                     <?php endif; ?>

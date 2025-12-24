@@ -395,7 +395,7 @@ body {
 .user-avatar {
     width: 36px;
     height: 36px;
-    border-radius: 50%;
+    border-radius: 12px;
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: #fff;
     display: flex;
@@ -403,6 +403,98 @@ body {
     justify-content: center;
     font-size: 0.85rem;
     font-weight: 600;
+}
+
+/* ==================== AVATARES Y FOTOS DE PERFIL ==================== */
+/* Sistema unificado de fotos - Cuadrado con bordes redondeados */
+
+/* Avatar base - Todos los tamaños heredan estos estilos */
+.avatar,
+.member-avatar,
+.pastor-avatar,
+.lider-avatar,
+.user-photo,
+.profile-photo {
+    border-radius: 12px !important;
+    object-fit: cover;
+    border: 2px solid var(--primary);
+    background: var(--gray-200);
+}
+
+/* Tamaños de avatar */
+.avatar-xs,
+.lider-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px !important;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px !important;
+}
+
+.avatar-md,
+.member-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px !important;
+}
+
+.avatar-lg,
+.pastor-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px !important;
+}
+
+.avatar-xl {
+    width: 80px;
+    height: 80px;
+    border-radius: 16px !important;
+}
+
+.avatar-xxl,
+.profile-photo-large {
+    width: 120px;
+    height: 120px;
+    border-radius: 18px !important;
+}
+
+.avatar-xxxl {
+    width: 150px;
+    height: 150px;
+    border-radius: 20px !important;
+}
+
+/* Placeholder cuando no hay foto */
+.avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--gray-300) 0%, var(--gray-400) 100%);
+    color: var(--gray-600);
+    border-radius: 12px;
+    border: 2px solid var(--primary);
+}
+
+.avatar-placeholder i {
+    font-size: 1.5rem;
+}
+
+.avatar-placeholder.avatar-xs i,
+.avatar-placeholder.avatar-sm i { font-size: 0.8rem; }
+.avatar-placeholder.avatar-md i { font-size: 1rem; }
+.avatar-placeholder.avatar-lg i { font-size: 1.5rem; }
+.avatar-placeholder.avatar-xl i { font-size: 2rem; }
+.avatar-placeholder.avatar-xxl i { font-size: 3rem; }
+.avatar-placeholder.avatar-xxxl i { font-size: 4rem; }
+
+/* Sobrescribir cualquier border-radius: 50% en fotos de perfil */
+img.rounded-circle,
+.rounded-circle img {
+    border-radius: 12px !important;
 }
 
 /* ==================== MAIN CONTENT ==================== */

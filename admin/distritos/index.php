@@ -16,6 +16,12 @@ require_once __DIR__ . '/../../config/config.php';
 // Filtro por conferencia
 $filtro_conferencia = filter_input(INPUT_GET, 'conferencia_id', FILTER_VALIDATE_INT);
 
+// Si es superintendente de conferencia, forzar su conferencia
+$es_super_conferencia = ($ROL_NOMBRE === 'super_conferencia');
+if ($es_super_conferencia && isset($_SESSION['conferencia_id'])) {
+    $filtro_conferencia = (int)$_SESSION['conferencia_id'];
+}
+
 // Obtener conferencias para el filtro
 $conferencias = $conexion->query("SELECT id, codigo, nombre FROM conferencias WHERE activo = 1 ORDER BY nombre");
 
