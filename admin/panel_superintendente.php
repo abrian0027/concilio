@@ -133,14 +133,14 @@ $stmt->close();
 // MIEMBROS POR MINISTERIO
 // ============================================
 $stmt = $conexion->prepare("
-    SELECT mi.nombre as ministerio, mi.icono,
+    SELECT mi.nombre as ministerio,
            COUNT(m.id) as total
     FROM ministerios mi
     LEFT JOIN miembros m ON m.ministerio_id = mi.id AND m.estado = 'activo'
     LEFT JOIN iglesias i ON m.iglesia_id = i.id
     LEFT JOIN distritos d ON i.distrito_id = d.id
     WHERE mi.activo = 1 AND (d.conferencia_id = ? OR m.id IS NULL)
-    GROUP BY mi.id, mi.nombre, mi.icono
+    GROUP BY mi.id, mi.nombre
     ORDER BY total DESC
 ");
 $stmt->bind_param("i", $conferencia_id);
@@ -171,7 +171,7 @@ $stmt->close();
 // LÍDERES DE MINISTERIOS CONFERENCIALES
 // ============================================
 $stmt = $conexion->prepare("
-    SELECT m.nombre as ministerio, m.icono,
+    SELECT m.nombre as ministerio,
            mb.nombre as lider_nombre, mb.apellido as lider_apellido,
            mlc.cargo
     FROM ministerio_lideres_conferencia mlc
@@ -705,7 +705,7 @@ $stmt->close();
                 <?php foreach ($ministerios as $min): ?>
                     <div class="ministerio-item">
                         <div class="ministerio-icon">
-                            <i class="fas fa-<?php echo htmlspecialchars($min['icono'] ?? 'users'); ?>"></i>
+                            <i class="fas fa-hands-praying"></i>
                         </div>
                         <div class="ministerio-info">
                             <h4><?php echo htmlspecialchars($min['ministerio']); ?></h4>
@@ -729,7 +729,7 @@ $stmt->close();
                 <?php foreach ($lideres_conf as $lider): ?>
                     <div class="lider-item">
                         <div class="lider-icon">
-                            <i class="fas fa-<?php echo htmlspecialchars($lider['icono'] ?? 'user'); ?>"></i>
+                            <i class="fas fa-user-tie"></i>
                         </div>
                         <div class="lider-info">
                             <h4><?php echo htmlspecialchars($lider['lider_nombre'] . ' ' . $lider['lider_apellido']); ?></h4>

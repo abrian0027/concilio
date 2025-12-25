@@ -263,26 +263,48 @@ if ($ROL_NOMBRE === 'super_admin') {
 </div>
 <?php endif; ?>
 
+<!-- Header Compacto -->
+<div class="row mb-3">
+    <div class="col-md-8">
+        <h4 class="mb-1"><i class="fas fa-arrow-up text-success me-2"></i>Ingresos / Entradas</h4>
+        <p class="text-muted mb-0 small">Registro de ofrendas, diezmos y donaciones</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <a href="index.php<?php echo $iglesia_id > 0 ? '?iglesia_id='.$iglesia_id : ''; ?>" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-chart-pie me-1"></i> Dashboard
+        </a>
+    </div>
+</div>
+
 <div class="row">
-    <!-- Formulario de Entrada -->
+    <!-- Formulario Izquierda -->
     <div class="col-lg-5 mb-4">
-        <div class="card h-100">
-            <div class="card-header bg-success text-white">
-                <h5 class="card-title mb-0"><i class="fas fa-plus-circle me-2"></i>Nueva Entrada</h5>
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-success text-white py-2">
+                <h6 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Nueva Entrada</h6>
             </div>
             <div class="card-body">
                 <form method="POST" id="formEntrada">
                     <input type="hidden" name="accion" value="crear">
                     <input type="hidden" name="iglesia_id" value="<?php echo $iglesia_id; ?>">
                     
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Fecha *</label>
-                        <input type="date" name="fecha" class="form-control" value="<?php echo date('Y-m-d'); ?>" required>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold mb-1">Fecha *</label>
+                            <input type="date" name="fecha" class="form-control form-control-sm" value="<?php echo date('Y-m-d'); ?>" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold mb-1">Monto *</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">RD$</span>
+                                <input type="number" name="monto" class="form-control" step="0.01" min="0.01" placeholder="0.00" required>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Categoría *</label>
-                        <select name="id_categoria" class="form-select" required>
+                    <div class="mb-2 mt-2">
+                        <label class="form-label small fw-bold mb-1">Categoría *</label>
+                        <select name="id_categoria" class="form-select form-select-sm" required>
                             <option value="">-- Seleccionar --</option>
                             <?php foreach ($categorias as $cat): ?>
                                 <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['nombre']); ?></option>
@@ -290,64 +312,66 @@ if ($ROL_NOMBRE === 'super_admin') {
                         </select>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Cuenta Destino *</label>
-                        <select name="id_cuenta" class="form-select" required>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold mb-1">Cuenta Destino *</label>
+                        <select name="id_cuenta" class="form-select form-select-sm" required>
                             <option value="">-- Seleccionar --</option>
                             <?php foreach ($cuentas as $cue): ?>
-                                <option value="<?php echo $cue['id']; ?>"><?php echo htmlspecialchars($cue['nombre']); ?></option>
+                                <option value="<?php echo $cue['id']; ?>">
+                                    <?php echo htmlspecialchars($cue['nombre']); ?> 
+                                    (RD$ <?php echo number_format((float)$cue['saldo_actual'], 2); ?>)
+                                </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Monto (RD$) *</label>
-                        <input type="number" name="monto" class="form-control" step="0.01" min="0.01" placeholder="0.00" required>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold mb-1">Forma de Pago</label>
+                            <select name="forma_pago" class="form-select form-select-sm">
+                                <option value="efectivo">💵 Efectivo</option>
+                                <option value="transferencia">🏦 Transferencia</option>
+                                <option value="cheque">📄 Cheque</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold mb-1">¿Quién aporta?</label>
+                            <select name="id_miembro" id="selectMiembro" class="form-select form-select-sm">
+                                <option value="">-- Miembro --</option>
+                                <?php foreach ($miembros as $miem): ?>
+                                    <option value="<?php echo $miem['id']; ?>"><?php echo htmlspecialchars($miem['nombre_completo']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <input type="text" name="nombre_manual" id="nombreManual" class="form-control form-control-sm" placeholder="O escriba nombre manual aquí">
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Forma de Pago</label>
-                        <select name="forma_pago" class="form-select">
-                            <option value="efectivo">💵 Efectivo</option>
-                            <option value="transferencia">🏦 Transferencia</option>
-                            <option value="cheque">📄 Cheque</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">¿Quién aporta?</label>
-                        <select name="id_miembro" id="selectMiembro" class="form-select">
-                            <option value="">-- Seleccionar Miembro --</option>
-                            <?php foreach ($miembros as $miem): ?>
-                                <option value="<?php echo $miem['id']; ?>"><?php echo htmlspecialchars($miem['nombre_completo']); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <input type="text" name="nombre_manual" id="nombreManual" class="form-control mt-2" placeholder="O escriba nombre aquí">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Descripción</label>
-                        <textarea name="descripcion" class="form-control" rows="2" placeholder="Observaciones..."></textarea>
+                        <label class="form-label small fw-bold mb-1">Descripción</label>
+                        <textarea name="descripcion" class="form-control form-control-sm" rows="2" placeholder="Observaciones opcionales..."></textarea>
                     </div>
                     
                     <button type="submit" class="btn btn-success w-100">
-                        <i class="fas fa-save me-2"></i>Guardar Entrada
+                        <i class="fas fa-save me-1"></i> Guardar Entrada
                     </button>
                 </form>
             </div>
         </div>
     </div>
     
-    <!-- Listado de Entradas -->
+    <!-- Listado Derecha -->
     <div class="col-lg-7 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="card-title mb-0"><i class="fas fa-list me-2"></i>Últimas Entradas</h5>
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header py-2">
+                <h6 class="mb-0"><i class="fas fa-list me-2"></i>Últimas Entradas</h6>
             </div>
             <div class="card-body p-0">
                 
-                <!-- Filtros -->
-                <div class="p-3 bg-light border-bottom">
+                <!-- Filtro -->
+                <div class="p-2 bg-light border-bottom">
                     <form method="GET" class="row g-2 align-items-end">
                         <input type="hidden" name="iglesia_id" value="<?php echo $iglesia_id; ?>">
                         <div class="col-5">
@@ -366,23 +390,17 @@ if ($ROL_NOMBRE === 'super_admin') {
                     </form>
                 </div>
                 
-                <!-- Resumen -->
-                <div class="row g-2 p-3 border-bottom">
-                    <div class="col-md-6">
-                        <div class="alert alert-success mb-0 py-2">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="small"><i class="fas fa-coins me-1"></i><strong>Total Período</strong></span>
-                                <span class="badge bg-success">RD$ <?php echo number_format($total_periodo, 2); ?></span>
-                            </div>
-                        </div>
+                <!-- Resumen Compacto -->
+                <div class="d-flex justify-content-between align-items-center p-2 border-bottom bg-white">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-coins text-success me-2"></i>
+                        <span class="small fw-bold">Total Período</span>
+                        <span class="badge bg-success ms-2">RD$ <?php echo number_format($total_periodo, 2); ?></span>
                     </div>
-                    <div class="col-md-6">
-                        <div class="alert alert-light border mb-0 py-2">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="small"><i class="fas fa-list-ol me-1"></i><strong>Registros</strong></span>
-                                <span class="badge bg-primary"><?php echo $total_registros; ?></span>
-                            </div>
-                        </div>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-list-ol text-primary me-2"></i>
+                        <span class="small">Registros</span>
+                        <span class="badge bg-primary ms-2"><?php echo $total_registros; ?></span>
                     </div>
                 </div>
             

@@ -55,7 +55,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $iglesia_id > 0) {
         $forma_pago = $_POST['forma_pago'];
         $descripcion = trim($_POST['descripcion'] ?? '');
         
-        if (esMesCerradoSalidas($conexion, $iglesia_id, $fecha)) {
+        // Validar saldo disponible en la cuenta
+        $stmt_saldo = $conexion->prepare("SELECT saldo_actual, nombre FROM fin_cuentas WHERE id = ? AND id_iglesia = ?");
+        $stmt_saldo->bind_param("ii", $id_cuenta, $iglesia_id);
+        $stmt_saldo->execute();
+        $cuenta_info = $stmt_saldo->get_result()->fetch_assoc();
+        $stmt_saldo->close();
+        
+        $saldo_disponible = (float)($cuenta_info['saldo_actual'] ?? 0);
+        
+        if ($monto > $saldo_disponible) {
+            $_SESSION['mensaje_finanzas'] = "Fondos insuficientes. El saldo disponible en " . htmlspecialchars($cuenta_info['nombre']) . " es RD$ " . number_format($saldo_disponible, 2) . " y está intentando retirar RD$ " . number_format($monto, 2);
+            $_SESSION['tipo_mensaje_finanzas'] = 'danger';
+        } elseif (esMesCerradoSalidas($conexion, $iglesia_id, $fecha)) {
             $_SESSION['mensaje_finanzas'] = "No se puede registrar: el mes está cerrado.";
             $_SESSION['tipo_mensaje_finanzas'] = 'danger';
         } else {
@@ -288,7 +300,7 @@ if ($ROL_NOMBRE === 'super_admin') {
                             <label class="form-label small fw-bold mb-1">Monto *</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text">RD$</span>
-                                <input type="number" name="monto" class="form-control" step="0.01" min="0.01" placeholder="0.00" required>
+                                <input type="number" name="monto" id="montoSalida" class="form-control" step="0.01" min="0.01" placeholder="0.00" required>
                             </div>
                         </div>
                     </div>
@@ -305,15 +317,22 @@ if ($ROL_NOMBRE === 'super_admin') {
                     
                     <div class="mb-2">
                         <label class="form-label small fw-bold mb-1">Cuenta Origen *</label>
-                        <select name="id_cuenta" class="form-select form-select-sm" required>
-                            <option value="">-- Seleccionar --</option>
+                        <select name="id_cuenta" id="selectCuenta" class="form-select form-select-sm" required>
+                            <option value="" data-saldo="0">-- Seleccionar --</option>
                             <?php foreach ($cuentas as $cue): ?>
-                                <option value="<?php echo $cue['id']; ?>">
+                                <option value="<?php echo $cue['id']; ?>" data-saldo="<?php echo (float)$cue['saldo_actual']; ?>">
                                     <?php echo htmlspecialchars($cue['nombre']); ?> 
                                     (RD$ <?php echo number_format((float)$cue['saldo_actual'], 2); ?>)
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                        <div id="saldoInfo" class="small text-muted mt-1" style="display:none;">
+                            Saldo disponible: <strong id="saldoDisponible" class="text-success">RD$ 0.00</strong>
+                        </div>
+                        <div id="alertaSaldo" class="alert alert-danger py-1 px-2 mt-1 small" style="display:none;">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <span id="mensajeAlerta"></span>
+                        </div>
                     </div>
                     
                     <div class="mb-2">
@@ -534,8 +553,71 @@ function confirmarEliminar(id) {
     modal.show();
 }
 
+// ============================================
+// VALIDACIÓN DE SALDO EN TIEMPO REAL
+// ============================================
+const selectCuenta = document.getElementById('selectCuenta');
+const inputMonto = document.getElementById('montoSalida');
+const saldoInfo = document.getElementById('saldoInfo');
+const saldoDisponible = document.getElementById('saldoDisponible');
+const alertaSaldo = document.getElementById('alertaSaldo');
+const mensajeAlerta = document.getElementById('mensajeAlerta');
+const btnSubmit = document.querySelector('#formSalida button[type="submit"]');
+
+let saldoActual = 0;
+
+function formatearMoneda(valor) {
+    return 'RD$ ' + parseFloat(valor).toLocaleString('es-DO', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function actualizarSaldo() {
+    const opcionSeleccionada = selectCuenta.options[selectCuenta.selectedIndex];
+    saldoActual = parseFloat(opcionSeleccionada.dataset.saldo) || 0;
+    
+    if (selectCuenta.value) {
+        saldoInfo.style.display = 'block';
+        saldoDisponible.textContent = formatearMoneda(saldoActual);
+    } else {
+        saldoInfo.style.display = 'none';
+    }
+    
+    validarMonto();
+}
+
+function validarMonto() {
+    const monto = parseFloat(inputMonto.value) || 0;
+    
+    if (monto > 0 && monto > saldoActual && selectCuenta.value) {
+        alertaSaldo.style.display = 'block';
+        mensajeAlerta.textContent = 'Fondos insuficientes. Disponible: ' + formatearMoneda(saldoActual) + ', Solicitado: ' + formatearMoneda(monto);
+        btnSubmit.disabled = true;
+        btnSubmit.classList.add('btn-secondary');
+        btnSubmit.classList.remove('btn-danger');
+        inputMonto.classList.add('is-invalid');
+    } else {
+        alertaSaldo.style.display = 'none';
+        btnSubmit.disabled = false;
+        btnSubmit.classList.remove('btn-secondary');
+        btnSubmit.classList.add('btn-danger');
+        inputMonto.classList.remove('is-invalid');
+    }
+}
+
+selectCuenta?.addEventListener('change', actualizarSaldo);
+inputMonto?.addEventListener('input', validarMonto);
+inputMonto?.addEventListener('change', validarMonto);
+
 // Prevenir doble envío del formulario
 document.getElementById('formSalida')?.addEventListener('submit', function(e) {
+    const monto = parseFloat(inputMonto.value) || 0;
+    
+    // Validar una vez más antes de enviar
+    if (monto > saldoActual && selectCuenta.value) {
+        e.preventDefault();
+        alert('Error: El monto solicitado (' + formatearMoneda(monto) + ') excede el saldo disponible (' + formatearMoneda(saldoActual) + ')');
+        return false;
+    }
+    
     const btn = this.querySelector('button[type="submit"]');
     if (btn.disabled) {
         e.preventDefault();
