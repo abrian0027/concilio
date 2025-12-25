@@ -80,14 +80,16 @@ $extension = match($mime_type) {
 $nuevo_nombre = 'user_' . $usuario_id . '_' . time() . '.' . $extension;
 $ruta_destino = $upload_dir . $nuevo_nombre;
 
-// Obtener foto anterior para eliminarla
-$stmt = $conexion->prepare("SELECT foto FROM usuarios WHERE id = ?");
+// Obtener datos del usuario para sincronización
+$stmt = $conexion->prepare("SELECT u.foto, u.miembro_id, u.usuario as cedula FROM usuarios u WHERE u.id = ?");
 $stmt->bind_param("i", $usuario_id);
 $stmt->execute();
 $usuario = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 $foto_anterior = $usuario['foto'] ?? null;
+$miembro_id = $usuario['miembro_id'] ?? null;
+$cedula = $usuario['cedula'] ?? null;
 
 // Mover archivo subido
 if (!move_uploaded_file($file['tmp_name'], $ruta_destino)) {
@@ -97,17 +99,103 @@ if (!move_uploaded_file($file['tmp_name'], $ruta_destino)) {
     exit;
 }
 
-// Actualizar base de datos
+// ============================================
+// SINCRONIZAR FOTO EN TODAS LAS TABLAS
+// ============================================
+
+$errores_sync = [];
+
+// 1. Actualizar tabla USUARIOS
 $stmt = $conexion->prepare("UPDATE usuarios SET foto = ? WHERE id = ?");
 $stmt->bind_param("si", $nuevo_nombre, $usuario_id);
+$usuarios_ok = $stmt->execute();
+$stmt->close();
 
-if ($stmt->execute()) {
-    // Eliminar foto anterior si existe
+// 2. Actualizar tabla MIEMBROS (si tiene miembro_id vinculado)
+$miembros_ok = true;
+if ($miembro_id) {
+    // Obtener foto anterior de miembro para eliminar
+    $stmt = $conexion->prepare("SELECT foto FROM miembros WHERE id = ?");
+    $stmt->bind_param("i", $miembro_id);
+    $stmt->execute();
+    $miembro_data = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    
+    $foto_miembro_anterior = $miembro_data['foto'] ?? null;
+    
+    // Copiar la foto a la carpeta de miembros para compatibilidad
+    $carpeta_miembros = __DIR__ . '/../../uploads/miembros/';
+    if (!file_exists($carpeta_miembros)) {
+        mkdir($carpeta_miembros, 0755, true);
+    }
+    copy($ruta_destino, $carpeta_miembros . $nuevo_nombre);
+    
+    // Actualizar foto en miembros
+    $stmt = $conexion->prepare("UPDATE miembros SET foto = ? WHERE id = ?");
+    $stmt->bind_param("si", $nuevo_nombre, $miembro_id);
+    $miembros_ok = $stmt->execute();
+    $stmt->close();
+    
+    // Eliminar foto anterior de miembro si existe y es diferente
+    if ($miembros_ok && $foto_miembro_anterior && $foto_miembro_anterior !== $nuevo_nombre) {
+        $ruta_miembro = __DIR__ . '/../../uploads/miembros/' . $foto_miembro_anterior;
+        if (file_exists($ruta_miembro)) {
+            unlink($ruta_miembro);
+        }
+    }
+}
+
+// 3. Actualizar tabla PASTORES (si tiene cédula vinculada)
+$pastores_ok = true;
+if ($cedula) {
+    // Verificar si existe en pastores
+    $stmt = $conexion->prepare("SELECT id, foto FROM pastores WHERE cedula = ?");
+    $stmt->bind_param("s", $cedula);
+    $stmt->execute();
+    $pastor_data = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    
+    if ($pastor_data) {
+        $foto_pastor_anterior = $pastor_data['foto'] ?? null;
+        
+        // Copiar la foto a la carpeta de pastores para compatibilidad
+        $carpeta_pastores = __DIR__ . '/../../uploads/pastores/';
+        if (!file_exists($carpeta_pastores)) {
+            mkdir($carpeta_pastores, 0755, true);
+        }
+        copy($ruta_destino, $carpeta_pastores . $nuevo_nombre);
+        
+        // Actualizar foto en pastores
+        $stmt = $conexion->prepare("UPDATE pastores SET foto = ? WHERE cedula = ?");
+        $stmt->bind_param("ss", $nuevo_nombre, $cedula);
+        $pastores_ok = $stmt->execute();
+        $stmt->close();
+        
+        // Eliminar foto anterior de pastor si existe y es diferente
+        if ($pastores_ok && $foto_pastor_anterior && $foto_pastor_anterior !== $nuevo_nombre) {
+            $ruta_pastor = __DIR__ . '/../../uploads/pastores/' . $foto_pastor_anterior;
+            if (file_exists($ruta_pastor)) {
+                unlink($ruta_pastor);
+            }
+        }
+    }
+}
+
+// Resultado final
+if ($usuarios_ok) {
+    // Eliminar foto anterior del usuario si existe
     if ($foto_anterior && file_exists($upload_dir . $foto_anterior)) {
         unlink($upload_dir . $foto_anterior);
     }
     
-    $_SESSION['perfil_mensaje'] = "<i class='fas fa-check-circle me-1'></i> Foto de perfil actualizada correctamente.";
+    // Mensaje de éxito con detalles de sincronización
+    $sync_info = [];
+    if ($miembro_id && $miembros_ok) $sync_info[] = 'Miembro';
+    if ($cedula && $pastores_ok) $sync_info[] = 'Pastor';
+    
+    $sync_msg = !empty($sync_info) ? ' (sincronizado en: ' . implode(', ', $sync_info) . ')' : '';
+    
+    $_SESSION['perfil_mensaje'] = "<i class='fas fa-check-circle me-1'></i> Foto de perfil actualizada correctamente" . $sync_msg;
     $_SESSION['perfil_tipo'] = 'success';
 } else {
     // Si falla la BD, eliminar el archivo subido
@@ -117,7 +205,6 @@ if ($stmt->execute()) {
     $_SESSION['perfil_mensaje'] = "<i class='fas fa-times-circle me-1'></i> Error al actualizar la foto en la base de datos.";
     $_SESSION['perfil_tipo'] = 'danger';
 }
-$stmt->close();
 
 header('Location: index.php');
 exit;
