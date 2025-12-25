@@ -223,12 +223,33 @@ try {
         $pastor_despues = $check->get_result()->fetch_assoc();
         $check->close();
         
+        // ============================================
+        // SINCRONIZAR NOMBRE EN MIEMBROS Y USUARIOS
+        // ============================================
+        $cedula_sync = $pastor_despues['cedula'];
+        
+        // Sincronizar con tabla MIEMBROS (por número de documento)
+        if (!empty($cedula_sync)) {
+            $stmt_sync = $conexion->prepare("UPDATE miembros SET nombre = ?, apellido = ? WHERE numero_documento = ?");
+            $stmt_sync->bind_param("sss", $nombre, $apellido, $cedula_sync);
+            $stmt_sync->execute();
+            $stmt_sync->close();
+        }
+        
+        // Sincronizar con tabla USUARIOS (por usuario = cédula)
+        if (!empty($cedula_sync)) {
+            $stmt_sync = $conexion->prepare("UPDATE usuarios SET nombre = ?, apellido = ? WHERE usuario = ?");
+            $stmt_sync->bind_param("sss", $nombre, $apellido, $cedula_sync);
+            $stmt_sync->execute();
+            $stmt_sync->close();
+        }
+        
         // Registrar en auditoría
         auditoria_editar(
             'pastores',
             'pastores',
             $id,
-            "Pastor actualizado: $nombre $apellido",
+            "Pastor actualizado: $nombre $apellido (sincronizado con miembros/usuarios)",
             $pastor_antes,
             $pastor_despues
         );

@@ -199,6 +199,23 @@ try {
     
     $conexion->query($sql);
     
+    // ============================================
+    // SINCRONIZAR NOMBRE EN PASTORES Y USUARIOS
+    // ============================================
+    if (!empty($numero_documento)) {
+        // Sincronizar con tabla PASTORES (por cédula)
+        $stmt_sync = $conexion->prepare("UPDATE pastores SET nombre = ?, apellido = ? WHERE cedula = ?");
+        $stmt_sync->bind_param("sss", $nombre, $apellido, $numero_documento);
+        $stmt_sync->execute();
+        $stmt_sync->close();
+        
+        // Sincronizar con tabla USUARIOS (por usuario = cédula)
+        $stmt_sync = $conexion->prepare("UPDATE usuarios SET nombre = ?, apellido = ? WHERE usuario = ?");
+        $stmt_sync->bind_param("sss", $nombre, $apellido, $numero_documento);
+        $stmt_sync->execute();
+        $stmt_sync->close();
+    }
+    
     $conexion->commit();
     
     // Eliminar foto anterior si se subió una nueva
