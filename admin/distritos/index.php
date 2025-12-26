@@ -4,8 +4,8 @@ declare(strict_types=1);
 $page_title = "Gestión de Distritos";
 require_once __DIR__ . '/../includes/header.php';
 
-// Solo Super Admin puede ver esto
-if ($ROL_NOMBRE !== 'super_admin') {
+// Super Admin y Superintendente de Conferencia pueden ver esto
+if (!in_array($ROL_NOMBRE, ['super_admin', 'super_conferencia'])) {
     echo "<div class='alert alert-danger'><i class='fas fa-exclamation-triangle'></i> No tienes permiso para acceder a este módulo.</div>";
     require_once __DIR__ . '/../includes/footer.php';
     exit;
@@ -56,9 +56,11 @@ $total_distritos = $resultado ? $resultado->num_rows : 0;
 <div class="content-header">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
         <h1><i class="fas fa-map-marked-alt"></i> Gestión de Distritos</h1>
+        <?php if ($ROL_NOMBRE === 'super_admin'): ?>
         <a href="crear.php" class="btn btn-primary">
             <i class="fas fa-plus"></i> Nuevo Distrito
         </a>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -76,7 +78,8 @@ $total_distritos = $resultado ? $resultado->num_rows : 0;
     </div>
 <?php endif; ?>
 
-<!-- Filtros -->
+<!-- Filtros (solo para super_admin) -->
+<?php if ($ROL_NOMBRE === 'super_admin'): ?>
 <div class="card" style="margin-bottom: 1rem;">
     <div class="card-body" style="padding: 1rem;">
         <form method="get" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
@@ -102,6 +105,7 @@ $total_distritos = $resultado ? $resultado->num_rows : 0;
         </form>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- Estadísticas -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
@@ -190,21 +194,25 @@ $total_distritos = $resultado ? $resultado->num_rows : 0;
                                            class="btn btn-sm btn-info" title="Ver detalles">
                                             <i class="fas fa-eye"></i>
                                         </a>
+                                        <?php if ($ROL_NOMBRE === 'super_admin'): ?>
                                         <a href="editar.php?id=<?php echo $dist['id']; ?>" 
                                            class="btn btn-sm btn-warning" title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <?php if ($dist['supervisor_id']): ?>
-                                            <a href="asignar_supervisor.php?id=<?php echo $dist['id']; ?>" 
-                                               class="btn btn-sm btn-primary" title="Cambiar Supervisor">
-                                                <i class="fas fa-user-tie"></i>
-                                            </a>
                                         <?php endif; ?>
+                                        <?php if (in_array($ROL_NOMBRE, ['super_admin', 'super_conferencia'])): ?>
+                                        <a href="asignar_supervisor.php?id=<?php echo $dist['id']; ?>" 
+                                           class="btn btn-sm btn-primary" title="<?php echo $dist['supervisor_id'] ? 'Cambiar Supervisor' : 'Asignar Supervisor'; ?>">
+                                            <i class="fas fa-user-tie"></i>
+                                        </a>
+                                        <?php endif; ?>
+                                        <?php if ($ROL_NOMBRE === 'super_admin'): ?>
                                         <a href="eliminar.php?id=<?php echo $dist['id']; ?>" 
                                            class="btn btn-sm btn-danger" title="Eliminar"
                                            onclick="return confirm('¿Está seguro de eliminar este distrito?');">
                                             <i class="fas fa-trash"></i>
                                         </a>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>

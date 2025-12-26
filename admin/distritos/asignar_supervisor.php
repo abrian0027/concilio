@@ -4,8 +4,8 @@ declare(strict_types=1);
 $page_title = "Asignar Supervisor de Distrito";
 require_once __DIR__ . '/../includes/header.php';
 
-// Solo Super Admin
-if ($ROL_NOMBRE !== 'super_admin') {
+// Super Admin o Superintendente de Conferencia
+if (!in_array($ROL_NOMBRE, ['super_admin', 'super_conferencia'])) {
     echo "<div class='alert alert-danger'><i class='fas fa-exclamation-triangle'></i> No tienes permiso para acceder a este módulo.</div>";
     require_once __DIR__ . '/../includes/footer.php';
     exit;
@@ -42,6 +42,16 @@ if (!$distrito) {
     exit;
 }
 
+// Verificar que el superintendente solo pueda asignar en distritos de su conferencia
+if ($ROL_NOMBRE === 'super_conferencia') {
+    $mi_conferencia = $_SESSION['conferencia_id'] ?? 0;
+    if ($distrito['conf_id'] != $mi_conferencia) {
+        echo "<div class='alert alert-danger'><i class='fas fa-exclamation-triangle'></i> No tienes permiso para modificar distritos de otra conferencia.</div>";
+        require_once __DIR__ . '/../includes/footer.php';
+        exit;
+    }
+}
+
 // Obtener pastores PRESBÍTEROS de la MISMA CONFERENCIA que no sean supervisores de otro distrito
 $stmt = $conexion->prepare("
     SELECT p.*, 
@@ -57,7 +67,7 @@ $stmt = $conexion->prepare("
         p.id NOT IN (SELECT supervisor_id FROM distritos WHERE supervisor_id IS NOT NULL AND id != ?)
         OR p.id = ?
     )
-    ORDER BY p.apellido, p.nombre
+    ORDER BY p.nombre, p.apellido
 ");
 $stmt->bind_param("iii", $distrito['conf_id'], $distrito_id, $distrito['supervisor_id']);
 $stmt->execute();
@@ -156,7 +166,7 @@ $pastores = $stmt->get_result();
                                 data-telefono="<?php echo htmlspecialchars($p['telefono'] ?? ''); ?>"
                                 data-iglesias="<?php echo htmlspecialchars($p['iglesias_asignadas'] ?? 'Ninguna'); ?>"
                                 <?php echo ($distrito['supervisor_id'] == $p['id']) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($p['apellido'] . ', ' . $p['nombre'] . ' - ' . $p['cedula']); ?>
+                            <?php echo htmlspecialchars($p['nombre'] . ' ' . $p['apellido'] . ' - ' . $p['cedula']); ?>
                             <?php if ($distrito['supervisor_id'] == $p['id']): ?> (Actual)<?php endif; ?>
                         </option>
                     <?php endwhile; ?>
