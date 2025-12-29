@@ -437,11 +437,17 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
         </a>
     </li>
     
-    <li class="nav-item">
-        <a href="<?php echo $base; ?>visitas/index.php" class="nav-link <?php echo $current_dir === 'visitas' ? 'active' : ''; ?>">
-            <i class="fas fa-user-plus"></i>
-            <span>Visitas</span>
+    <!-- Registros -->
+    <li class="nav-item has-submenu">
+        <a href="#" class="nav-link <?php echo in_array($current_dir, array('visitas', 'presentaciones')) ? 'active' : ''; ?>">
+            <i class="fas fa-book"></i>
+            <span>Registros</span>
+            <i class="fas fa-chevron-down arrow"></i>
         </a>
+        <ul class="submenu">
+            <li><a href="<?php echo $base; ?>visitas/index.php" class="<?php echo $current_dir === 'visitas' ? 'active' : ''; ?>"><i class="fas fa-user-plus"></i> Visitas</a></li>
+            <li><a href="<?php echo $base; ?>registros/presentaciones/index.php" class="<?php echo $current_dir === 'presentaciones' ? 'active' : ''; ?>"><i class="fas fa-baby"></i> Presentaciones</a></li>
+        </ul>
     </li>
     
     <?php if ($rol === 'pastor'): ?>
