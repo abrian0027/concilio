@@ -206,6 +206,7 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
             <li><a href="<?php echo $base; ?>estructura/periodos/index.php"><i class="fas fa-circle"></i> Períodos</a></li>
             <li><a href="<?php echo $base; ?>estructura/junta/index.php"><i class="fas fa-circle"></i> Junta Admin.</a></li>
             <li><a href="<?php echo $base; ?>estructura/lideres/index.php"><i class="fas fa-circle"></i> Líderes</a></li>
+            <li><a href="<?php echo $base; ?>estructura/zonas/index.php"><i class="fas fa-circle"></i> Zonas/Grupos</a></li>
         </ul>
     </li>
     
@@ -436,6 +437,13 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
         </a>
     </li>
     
+    <li class="nav-item">
+        <a href="<?php echo $base; ?>visitas/index.php" class="nav-link <?php echo $current_dir === 'visitas' ? 'active' : ''; ?>">
+            <i class="fas fa-user-plus"></i>
+            <span>Visitas</span>
+        </a>
+    </li>
+    
     <?php if ($rol === 'pastor'): ?>
     <li class="nav-item">
         <a href="<?php echo $base; ?>usuarios_iglesia/index.php" class="nav-link">
@@ -456,6 +464,7 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
             <li><a href="<?php echo $base; ?>estructura/periodos/index.php"><i class="fas fa-circle"></i> Períodos</a></li>
             <li><a href="<?php echo $base; ?>estructura/junta/index.php"><i class="fas fa-circle"></i> Junta Admin.</a></li>
             <li><a href="<?php echo $base; ?>estructura/lideres/index.php"><i class="fas fa-circle"></i> Líderes</a></li>
+            <li><a href="<?php echo $base; ?>estructura/zonas/index.php"><i class="fas fa-circle"></i> Zonas/Grupos</a></li>
         </ul>
     </li>
     

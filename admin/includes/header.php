@@ -35,8 +35,9 @@ $iniciales = obtenerIniciales($USUARIO_NOMBRE);
     <title><?php echo htmlspecialchars($titulo_pagina); ?> - Sistema Concilio</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo $base_path; ?>../assets/img/favicon-32x32.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="<?php echo $base_path; ?>../assets/img/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="/concilio/assets/img/favicon.ico">
+    <link rel="shortcut icon" href="/concilio/assets/img/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/concilio/assets/img/apple-touch-icon.png">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

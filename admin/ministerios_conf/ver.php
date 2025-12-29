@@ -84,11 +84,12 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmt->close();
 
-// Buscar el área ministerial correspondiente
+// Buscar el área ministerial correspondiente (por nombre exacto)
 $area_id = null;
-$stmt = $conexion->prepare("SELECT id FROM areas_ministeriales WHERE nombre LIKE ? AND activo = 1 LIMIT 1");
-$nombre_like = '%' . $ministerio['nombre'] . '%';
-$stmt->bind_param("s", $nombre_like);
+$stmt = $conexion->prepare("SELECT am.id FROM areas_ministeriales am 
+                            INNER JOIN ministerios mn ON am.nombre = mn.nombre 
+                            WHERE mn.id = ? AND am.activo = 1 LIMIT 1");
+$stmt->bind_param("i", $ministerio_id);
 $stmt->execute();
 $area = $stmt->get_result()->fetch_assoc();
 $stmt->close();

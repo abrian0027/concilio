@@ -39,6 +39,7 @@ $es_lider = (int)($_POST['es_lider'] ?? 0);
 $estado = $_POST['estado'] ?? 'activo';
 $familia_opcion = $_POST['familia_opcion'] ?? '';
 $apellido_familia = mb_strtoupper(trim($_POST['apellido_familia'] ?? ''), 'UTF-8');
+$zona_id = !empty($_POST['zona_id']) ? (int)$_POST['zona_id'] : null;
 $foto_actual = $_POST['foto_actual'] ?? '';
 
 // Iglesia
@@ -171,11 +172,13 @@ try {
     $ministerio_sql = $ministerio_id !== null ? $ministerio_id : "NULL";
     $fecha_bautismo_sql = $fecha_bautismo !== null ? "'$fecha_bautismo'" : "NULL";
     $familia_sql = $familia_id !== null ? $familia_id : "NULL";
+    $zona_sql = $zona_id !== null ? $zona_id : "NULL";
     
     // Actualizar miembro con consulta directa
     $sql = "UPDATE miembros SET 
                 iglesia_id = $iglesia_id,
                 familia_id = $familia_sql,
+                zona_id = $zona_sql,
                 nombre = '" . $conexion->real_escape_string($nombre) . "',
                 apellido = '" . $conexion->real_escape_string($apellido) . "',
                 sexo = '" . $conexion->real_escape_string($sexo) . "',

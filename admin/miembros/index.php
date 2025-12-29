@@ -26,6 +26,7 @@ $filtro_estado = isset($_GET['estado']) ? $_GET['estado'] : '';
 $filtro_estado_miembro = isset($_GET['estado_miembro']) ? $_GET['estado_miembro'] : '';
 $filtro_bautizado = isset($_GET['bautizado']) ? $_GET['bautizado'] : '';
 $filtro_lider = isset($_GET['lider']) ? $_GET['lider'] : '';
+$filtro_zona = isset($_GET['zona']) ? (int)$_GET['zona'] : 0;
 $buscar = isset($_GET['buscar']) ? trim($_GET['buscar']) : '';
 
 // Paginación
@@ -55,6 +56,12 @@ if (($ROL_NOMBRE ?? '') === 'pastor' || ($ROL_NOMBRE ?? '') === 'secretaria') {
 if ($filtro_ministerio > 0) {
     $where[] = "m.ministerio_id = ?";
     $params[] = $filtro_ministerio;
+    $types .= 'i';
+}
+
+if ($filtro_zona > 0) {
+    $where[] = "m.zona_id = ?";
+    $params[] = $filtro_zona;
     $types .= 'i';
 }
 
@@ -213,8 +220,18 @@ function buildUrl($params_override = []): string {
     return 'index.php' . (!empty($params) ? '?' . http_build_query($params) : '');
 }
 
-$hay_filtros = $filtro_ministerio > 0 || $filtro_estado !== '' || $filtro_estado_miembro !== '' || 
+$hay_filtros = $filtro_ministerio > 0 || $filtro_zona > 0 || $filtro_estado !== '' || $filtro_estado_miembro !== '' || 
                $filtro_bautizado !== '' || $filtro_lider !== '' || $buscar !== '';
+
+// Obtener zonas para el filtro
+$zonas_filtro = [];
+$iglesia_para_zonas = ($ROL_NOMBRE === 'pastor' || $ROL_NOMBRE === 'secretaria') ? ($IGLESIA_ID ?? 0) : 0;
+if ($iglesia_para_zonas > 0) {
+    $result_zonas = $conexion->query("SELECT id, codigo, nombre FROM zonas WHERE iglesia_id = $iglesia_para_zonas AND activo = 1 ORDER BY codigo");
+    if ($result_zonas) {
+        $zonas_filtro = $result_zonas->fetch_all(MYSQLI_ASSOC);
+    }
+}
 ?>
 
 <style>
@@ -399,6 +416,17 @@ $hay_filtros = $filtro_ministerio > 0 || $filtro_estado !== '' || $filtro_estado
                         <?php endwhile; endif; ?>
                     </select>
                 </div>
+                <?php if (!empty($zonas_filtro)): ?>
+                <div class="filter-group">
+                    <label>Zona/Grupo</label>
+                    <select name="zona">
+                        <option value="0">Todas</option>
+                        <?php foreach ($zonas_filtro as $zf): ?>
+                        <option value="<?php echo $zf['id']; ?>" <?php echo $filtro_zona == $zf['id'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($zf['codigo'] . ' - ' . $zf['nombre']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php endif; ?>
                 <div class="filter-group">
                     <label>Membresía</label>
                     <select name="estado_miembro">

@@ -30,7 +30,9 @@ $sql = "SELECT m.*,
                ne.nombre AS nivel_estudio_nombre,
                car.nombre AS carrera_nombre,
                f.codigo AS familia_codigo,
-               f.apellido_familia
+               f.apellido_familia,
+               z.codigo AS zona_codigo,
+               z.nombre AS zona_nombre
         FROM miembros m
         INNER JOIN iglesias i ON i.id = m.iglesia_id
         INNER JOIN distritos d ON d.id = i.distrito_id
@@ -40,6 +42,7 @@ $sql = "SELECT m.*,
         LEFT JOIN niveles_estudio ne ON ne.id = m.nivel_estudio_id
         LEFT JOIN carreras car ON car.id = m.carrera_id
         LEFT JOIN familias f ON f.id = m.familia_id
+        LEFT JOIN zonas z ON z.id = m.zona_id
         WHERE m.id = ?";
 
 $stmt = $conexion->prepare($sql);
@@ -253,11 +256,11 @@ $estados_miembro = [
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="fw-semibold text-muted small">Estado Civil</label>
                         <div><?php echo $estados_civiles[$miembro['estado_civil']] ?? '--'; ?></div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="fw-semibold text-muted small">Familia</label>
                         <div>
                             <?php 
@@ -268,6 +271,19 @@ $estados_miembro = [
                                 }
                             } else {
                                 echo '<span class="text-muted">Sin familia asignada</span>';
+                            }
+                            ?>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="fw-semibold text-muted small">Zona / Grupo</label>
+                        <div>
+                            <?php 
+                            if ($miembro['zona_codigo']) {
+                                echo '<i class="fas fa-map-marker-alt"></i> ' . htmlspecialchars($miembro['zona_codigo']);
+                                echo ' - ' . htmlspecialchars($miembro['zona_nombre']);
+                            } else {
+                                echo '<span class="text-muted">Sin zona asignada</span>';
                             }
                             ?>
                         </div>

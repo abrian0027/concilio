@@ -72,6 +72,18 @@ $stmt->bind_param("i", $miembro['iglesia_id']);
 $stmt->execute();
 $familias = $stmt->get_result();
 $stmt->close();
+
+// Obtener zonas de la iglesia del miembro
+$stmt = $conexion->prepare("SELECT z.*, COUNT(m.id) AS total_miembros 
+                            FROM zonas z 
+                            LEFT JOIN miembros m ON m.zona_id = z.id AND m.estado = 'activo'
+                            WHERE z.iglesia_id = ? AND z.activo = 1
+                            GROUP BY z.id 
+                            ORDER BY z.codigo");
+$stmt->bind_param("i", $miembro['iglesia_id']);
+$stmt->execute();
+$zonas = $stmt->get_result();
+$stmt->close();
 ?>
 
 <div class="content-header">
@@ -254,6 +266,23 @@ $stmt->close();
                     <input type="text" name="apellido_familia" class="form-control text-uppercase" 
                            placeholder="Ej: FAMILIA PÉREZ" maxlength="150">
                     <small class="text-muted d-block">Opcional, para identificar la familia</small>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">
+                        <i class="fas fa-map-marker-alt"></i> Zona / Grupo
+                    </label>
+                    <select name="zona_id" id="zona_id" class="form-select">
+                        <option value="">-- Sin asignar zona --</option>
+                        <?php while ($zon = $zonas->fetch_assoc()): ?>
+                            <option value="<?php echo $zon['id']; ?>" <?php echo ($miembro['zona_id'] ?? 0) == $zon['id'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($zon['codigo']); ?>
+                                - <?php echo htmlspecialchars($zon['nombre']); ?>
+                                (<?php echo $zon['total_miembros']; ?> miembros)
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                    <small class="text-muted d-block">Zona geográfica o grupo de la iglesia</small>
                 </div>
             </div>
 

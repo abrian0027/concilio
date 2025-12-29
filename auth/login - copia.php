@@ -212,9 +212,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Sistema Concilio - Inicio de sesión</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/concilio/assets/img/favicon.ico">
-    <link rel="shortcut icon" href="/concilio/assets/img/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="/concilio/assets/img/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/img/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../assets/img/apple-touch-icon.png">
+    <link rel="shortcut icon" href="../assets/img/favicon.ico">
     
     <link rel="stylesheet" href="../css/theme.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

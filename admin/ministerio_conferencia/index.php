@@ -87,44 +87,105 @@ $stmt->close();
 
 $conferencia_nombre = $conferencia['nombre'] ?? 'Conferencia';
 
-// Obtener estadísticas GLOBALES del ministerio en toda la conferencia
-$sql = "SELECT 
-        COUNT(*) AS total,
-        SUM(CASE WHEN m.sexo = 'M' THEN 1 ELSE 0 END) AS hombres,
-        SUM(CASE WHEN m.sexo = 'F' THEN 1 ELSE 0 END) AS mujeres,
-        SUM(CASE WHEN m.es_bautizado = 1 THEN 1 ELSE 0 END) AS bautizados,
-        ROUND(AVG(TIMESTAMPDIFF(YEAR, m.fecha_nacimiento, CURDATE()))) AS edad_promedio,
-        COUNT(DISTINCT m.iglesia_id) AS total_iglesias
-        FROM miembros m
-        INNER JOIN iglesias i ON m.iglesia_id = i.id
-        INNER JOIN distritos d ON i.distrito_id = d.id
-        WHERE d.conferencia_id = ? AND m.ministerio_id = ? AND m.estado = 'activo'";
+// Obtener el area_id correspondiente en areas_ministeriales
+$area_id_ministerio = $ministerio_id; // Por defecto
+$sql_area = "SELECT am.id FROM areas_ministeriales am 
+             INNER JOIN ministerios mn ON am.nombre = mn.nombre 
+             WHERE mn.id = ? AND am.activo = 1 LIMIT 1";
+$stmt_area = $conexion->prepare($sql_area);
+$stmt_area->bind_param("i", $ministerio_id);
+$stmt_area->execute();
+$result_area = $stmt_area->get_result()->fetch_assoc();
+if ($result_area) {
+    $area_id_ministerio = $result_area['id'];
+}
+$stmt_area->close();
 
-$stmt = $conexion->prepare($sql);
-$stmt->bind_param("ii", $conferencia_id, $ministerio_id);
-$stmt->execute();
-$stats_generales = $stmt->get_result()->fetch_assoc();
-$stmt->close();
+// Determinar si es un ministerio demográfico (por edad/sexo) o de servicio
+// Ministerios demográficos: Damas, Caballeros, Jóvenes, Adolescentes, Niños (IDs 1-5 en ministerios)
+$es_ministerio_demografico = in_array($ministerio_id, [1, 2, 3, 4, 5]);
 
-// Obtener distribución por DISTRITOS
-$sql = "SELECT 
-        d.id, d.nombre AS distrito_nombre,
-        COUNT(m.id) AS total_miembros,
-        SUM(CASE WHEN m.sexo = 'M' THEN 1 ELSE 0 END) AS hombres,
-        SUM(CASE WHEN m.sexo = 'F' THEN 1 ELSE 0 END) AS mujeres,
-        COUNT(DISTINCT m.iglesia_id) AS total_iglesias
-        FROM distritos d
-        LEFT JOIN iglesias i ON d.id = i.distrito_id
-        LEFT JOIN miembros m ON i.id = m.iglesia_id AND m.ministerio_id = ? AND m.estado = 'activo'
-        WHERE d.conferencia_id = ?
-        GROUP BY d.id, d.nombre
-        ORDER BY d.nombre";
+if ($es_ministerio_demografico) {
+    // Obtener estadísticas GLOBALES del ministerio basadas en MIEMBROS
+    $sql = "SELECT 
+            COUNT(*) AS total,
+            SUM(CASE WHEN m.sexo = 'M' THEN 1 ELSE 0 END) AS hombres,
+            SUM(CASE WHEN m.sexo = 'F' THEN 1 ELSE 0 END) AS mujeres,
+            SUM(CASE WHEN m.es_bautizado = 1 THEN 1 ELSE 0 END) AS bautizados,
+            ROUND(AVG(TIMESTAMPDIFF(YEAR, m.fecha_nacimiento, CURDATE()))) AS edad_promedio,
+            COUNT(DISTINCT m.iglesia_id) AS total_iglesias
+            FROM miembros m
+            INNER JOIN iglesias i ON m.iglesia_id = i.id
+            INNER JOIN distritos d ON i.distrito_id = d.id
+            WHERE d.conferencia_id = ? AND m.ministerio_id = ? AND m.estado = 'activo'";
 
-$stmt = $conexion->prepare($sql);
-$stmt->bind_param("ii", $ministerio_id, $conferencia_id);
-$stmt->execute();
-$distritos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-$stmt->close();
+    $stmt = $conexion->prepare($sql);
+    $stmt->bind_param("ii", $conferencia_id, $ministerio_id);
+    $stmt->execute();
+    $stats_generales = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    // Obtener distribución por DISTRITOS basada en miembros
+    $sql = "SELECT 
+            d.id, d.nombre AS distrito_nombre,
+            COUNT(m.id) AS total_miembros,
+            SUM(CASE WHEN m.sexo = 'M' THEN 1 ELSE 0 END) AS hombres,
+            SUM(CASE WHEN m.sexo = 'F' THEN 1 ELSE 0 END) AS mujeres,
+            COUNT(DISTINCT m.iglesia_id) AS total_iglesias
+            FROM distritos d
+            LEFT JOIN iglesias i ON d.id = i.distrito_id
+            LEFT JOIN miembros m ON i.id = m.iglesia_id AND m.ministerio_id = ? AND m.estado = 'activo'
+            WHERE d.conferencia_id = ?
+            GROUP BY d.id, d.nombre
+            ORDER BY d.nombre";
+
+    $stmt = $conexion->prepare($sql);
+    $stmt->bind_param("ii", $ministerio_id, $conferencia_id);
+    $stmt->execute();
+    $distritos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+} else {
+    // MINISTERIO DE SERVICIO: Estadísticas basadas en LÍDERES LOCALES asignados
+    $sql = "SELECT 
+            COUNT(DISTINCT al.id) AS total,
+            SUM(CASE WHEN m.sexo = 'M' THEN 1 ELSE 0 END) AS hombres,
+            SUM(CASE WHEN m.sexo = 'F' THEN 1 ELSE 0 END) AS mujeres,
+            SUM(CASE WHEN m.es_bautizado = 1 THEN 1 ELSE 0 END) AS bautizados,
+            0 AS edad_promedio,
+            COUNT(DISTINCT al.iglesia_id) AS total_iglesias
+            FROM area_lideres al
+            INNER JOIN miembros m ON al.miembro_id = m.id
+            INNER JOIN iglesias i ON al.iglesia_id = i.id
+            INNER JOIN distritos d ON i.distrito_id = d.id
+            WHERE d.conferencia_id = ? AND al.area_id = ? AND al.activo = 1";
+
+    $stmt = $conexion->prepare($sql);
+    $stmt->bind_param("ii", $conferencia_id, $area_id_ministerio);
+    $stmt->execute();
+    $stats_generales = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    // Obtener distribución por DISTRITOS basada en líderes asignados
+    $sql = "SELECT 
+            d.id, d.nombre AS distrito_nombre,
+            COUNT(DISTINCT al.id) AS total_miembros,
+            SUM(CASE WHEN m.sexo = 'M' THEN 1 ELSE 0 END) AS hombres,
+            SUM(CASE WHEN m.sexo = 'F' THEN 1 ELSE 0 END) AS mujeres,
+            COUNT(DISTINCT al.iglesia_id) AS total_iglesias
+            FROM distritos d
+            LEFT JOIN iglesias i ON d.id = i.distrito_id AND i.activo = 1
+            LEFT JOIN area_lideres al ON i.id = al.iglesia_id AND al.area_id = ? AND al.activo = 1
+            LEFT JOIN miembros m ON al.miembro_id = m.id
+            WHERE d.conferencia_id = ?
+            GROUP BY d.id, d.nombre
+            ORDER BY d.nombre";
+
+    $stmt = $conexion->prepare($sql);
+    $stmt->bind_param("ii", $area_id_ministerio, $conferencia_id);
+    $stmt->execute();
+    $distritos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+}
 
 // Obtener TODA la directiva del ministerio de conferencia
 $sql = "SELECT mlc.*, 
@@ -144,8 +205,11 @@ $stmt->execute();
 $directiva = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
+// Usar el area_id que ya obtuvimos arriba
+$area_id_para_lideres = $area_id_ministerio;
+
 // Obtener LÍDERES LOCALES (de cada iglesia)
-// Nota: area_lideres usa area_id que corresponde a ministerio_id en los primeros ministerios
+// Usamos el area_id correcto de areas_ministeriales
 $sql = "SELECT 
         al.id, al.tipo,
         CONCAT(m.nombre, ' ', m.apellido) AS lider_nombre,
@@ -164,7 +228,7 @@ $sql = "SELECT
         ORDER BY d.nombre, i.nombre";
 
 $stmt = $conexion->prepare($sql);
-$stmt->bind_param("iii", $ministerio_id, $ministerio_id, $conferencia_id);
+$stmt->bind_param("iii", $ministerio_id, $area_id_para_lideres, $conferencia_id);
 $stmt->execute();
 $lideres_locales = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
@@ -204,7 +268,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <i class="fas fa-users fa-lg fa-md-2x text-primary"></i>
                     </div>
                     <div class="flex-grow-1 ms-2 ms-md-3">
-                        <h6 class="text-muted mb-1 small">Total Miembros</h6>
+                        <h6 class="text-muted mb-1 small"><?php echo $es_ministerio_demografico ? 'Total Miembros' : 'Total Líderes'; ?></h6>
                         <h3 class="mb-0 fs-5 fs-md-3"><?php echo number_format($stats_generales['total']); ?></h3>
                         <small class="text-muted d-none d-lg-block">En <?php echo $stats_generales['total_iglesias']; ?> iglesias</small>
                     </div>
@@ -294,8 +358,8 @@ require_once __DIR__ . '/../includes/header.php';
                         <thead class="table-light">
                             <tr>
                                 <th class="text-nowrap">Distrito</th>
-                                <th class="text-center text-nowrap">Iglesias</th>
-                                <th class="text-center text-nowrap">Total</th>
+                                <th class="text-center text-nowrap"><?php echo $es_ministerio_demografico ? 'Iglesias' : 'Iglesias c/Líder'; ?></th>
+                                <th class="text-center text-nowrap"><?php echo $es_ministerio_demografico ? 'Total' : 'Líderes'; ?></th>
                                 <th class="text-center text-nowrap d-none d-sm-table-cell">Hombres</th>
                                 <th class="text-center text-nowrap d-none d-sm-table-cell">Mujeres</th>
                             </tr>

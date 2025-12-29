@@ -29,8 +29,19 @@ if ($iglesia_id <= 0 || $ministerio_id <= 0) {
 }
 
 try {
-    // area_id = ministerio_id para las consultas de area_lideres
-    $area_id = $ministerio_id;
+    // Obtener el area_id correcto de areas_ministeriales (pueden tener IDs diferentes a ministerios)
+    $area_id = $ministerio_id; // Por defecto
+    $sql_area = "SELECT am.id FROM areas_ministeriales am 
+                 INNER JOIN ministerios mn ON am.nombre = mn.nombre 
+                 WHERE mn.id = ? AND am.activo = 1 LIMIT 1";
+    $stmt_area = $conexion->prepare($sql_area);
+    $stmt_area->bind_param("i", $ministerio_id);
+    $stmt_area->execute();
+    $result_area = $stmt_area->get_result()->fetch_assoc();
+    if ($result_area) {
+        $area_id = $result_area['id'];
+    }
+    $stmt_area->close();
     
     // 1. OBTENER LÍDER PRINCIPAL
     $sql = "SELECT al.*, 

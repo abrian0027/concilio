@@ -44,6 +44,22 @@ if ($result) {
     }
 }
 
+// Obtener áreas ministeriales disponibles (las que NO están en la tabla ministerios)
+// Excluimos también los ministerios demográficos que ya existen con nombres diferentes
+$areas_disponibles = array();
+$sql_areas = "SELECT am.id, am.nombre, am.descripcion 
+              FROM areas_ministeriales am 
+              WHERE am.activo = 1 
+              AND am.nombre NOT IN (SELECT nombre FROM ministerios WHERE activo = 1)
+              AND am.nombre NOT IN ('Damas', 'Caballeros', 'Jóvenes', 'Jovencitos', 'Niños (CIC)')
+              ORDER BY am.nombre";
+$result = $conexion->query($sql_areas);
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $areas_disponibles[] = $row;
+    }
+}
+
 // Obtener líderes por ministerio
 $lideres_por_ministerio = array();
 $sql_lideres = "SELECT * FROM v_lideres_ministerio_conferencia WHERE activo = 1";
@@ -128,9 +144,16 @@ if ($conferencia_filtro > 0) {
 <?php if ($conferencia_filtro > 0 || !$es_super_admin): ?>
 
 <?php if ($conferencia_nombre): ?>
-<div class="alert alert-primary mb-4">
-    <i class="fas fa-globe-americas me-2"></i>
-    <strong>Conferencia:</strong> <?php echo htmlspecialchars($conferencia_nombre); ?>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="alert alert-primary mb-0 flex-grow-1 me-3">
+        <i class="fas fa-globe-americas me-2"></i>
+        <strong>Conferencia:</strong> <?php echo htmlspecialchars($conferencia_nombre); ?>
+    </div>
+    <?php if (count($areas_disponibles) > 0): ?>
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarMinisterio">
+        <i class="fas fa-plus-circle me-1"></i>Agregar Ministerio de Servicio
+    </button>
+    <?php endif; ?>
 </div>
 <?php endif; ?>
 
@@ -208,5 +231,65 @@ if ($conferencia_filtro > 0) {
     <?php endforeach; ?>
 </div>
 <?php endif; ?>
+
+<!-- Modal Agregar Ministerio de Servicio -->
+<div class="modal fade" id="modalAgregarMinisterio" tabindex="-1" aria-labelledby="modalAgregarMinisterioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalAgregarMinisterioLabel">
+                    <i class="fas fa-plus-circle me-2"></i>Agregar Ministerio de Servicio
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form action="agregar_ministerio.php" method="POST">
+                <div class="modal-body">
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Seleccione un ministerio de servicio para agregarlo a la lista de ministerios conferenciales.
+                        Una vez agregado, podrá asignar un presidente y directiva.
+                    </p>
+                    
+                    <input type="hidden" name="conferencia" value="<?php echo $conferencia_filtro; ?>">
+                    
+                    <div class="row">
+                        <?php foreach ($areas_disponibles as $area): ?>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check border rounded p-3 h-100">
+                                <input class="form-check-input" type="radio" name="area_id" 
+                                       id="area_<?php echo $area['id']; ?>" 
+                                       value="<?php echo $area['id']; ?>" required>
+                                <label class="form-check-label w-100" for="area_<?php echo $area['id']; ?>">
+                                    <strong><?php echo htmlspecialchars($area['nombre']); ?></strong>
+                                    <?php if (!empty($area['descripcion'])): ?>
+                                    <br><small class="text-muted"><?php echo htmlspecialchars($area['descripcion']); ?></small>
+                                    <?php endif; ?>
+                                </label>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    
+                    <?php if (empty($areas_disponibles)): ?>
+                    <div class="alert alert-info">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Todos los ministerios de servicio ya han sido agregados.
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <?php if (!empty($areas_disponibles)): ?>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i>Agregar Ministerio
+                    </button>
+                    <?php endif; ?>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
