@@ -30,7 +30,7 @@ $filtro_zona = isset($_GET['zona']) ? (int)$_GET['zona'] : 0;
 $buscar = isset($_GET['buscar']) ? trim($_GET['buscar']) : '';
 
 // Paginación
-$por_pagina = 12;
+$por_pagina = 5;
 $pagina_actual = isset($_GET['pagina']) ? max(1, (int)$_GET['pagina']) : 1;
 $offset = ($pagina_actual - 1) * $por_pagina;
 
@@ -172,9 +172,9 @@ try {
     $total_paginas = (int)ceil($total_registros / $por_pagina);
     $stmt->close();
 
-    // Datos
+    // Datos - Ordenados por los últimos registrados primero
     $sql = "SELECT m.*, i.nombre AS iglesia_nombre, min.nombre AS ministerio_nombre 
-            $sql_base $where_clause ORDER BY m.nombre, m.apellido LIMIT ? OFFSET ?";
+            $sql_base $where_clause ORDER BY m.id DESC LIMIT ? OFFSET ?";
     $params_pag = array_merge($params, [$por_pagina, $offset]);
     $types_pag = $types . 'ii';
     
@@ -276,32 +276,43 @@ if ($iglesia_para_zonas > 0) {
 .results-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;font-size:0.9rem;color:#6b7280}
 .results-info strong{color:#0891b2}
 
-.members-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
-.member-card{background:#fff;border-radius:0.75rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;transition:all 0.3s ease;cursor:pointer;border:2px solid transparent}
-.member-card:hover{transform:translateY(-4px);box-shadow:0 12px 25px rgba(0,0,0,0.12);border-color:#0891b2}
-.member-card-top{padding:1.25rem 1rem 1rem;text-align:center;background:linear-gradient(180deg,#f8fafc 0%,#fff 100%);position:relative}
-.member-card-menu{position:absolute;top:0.5rem;right:0.5rem}
-.btn-card-menu{background:transparent;border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#9ca3af;cursor:pointer;transition:all 0.2s ease}
-.btn-card-menu:hover{background:rgba(0,0,0,0.05);color:#374151}
-.member-avatar{width:70px;height:70px;border-radius:14px;margin:0 auto 0.75rem;object-fit:cover;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
-.member-avatar-placeholder{width:70px;height:70px;border-radius:14px;margin:0 auto 0.75rem;background:linear-gradient(135deg,#0891b2 0%,#0dcaf0 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;font-weight:700;box-shadow:0 4px 12px rgba(8,145,178,0.3)}
-.member-name{font-size:1rem;font-weight:600;color:#1f2937;margin-bottom:0.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.member-document{font-size:0.8rem;color:#9ca3af}
-.member-card-body{padding:0.75rem 1rem;border-top:1px solid #f0f0f0}
-.member-info-row{display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:#6b7280;padding:0.35rem 0}
-.member-info-row i{width:16px;color:#0891b2;font-size:0.8rem}
-.member-info-row span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.member-card-footer{display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1rem;background:#f9fafb;border-top:1px solid #f0f0f0}
-.member-badges{display:flex;gap:0.35rem}
-.member-badge{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem}
+/* Estilos de Lista de Miembros */
+.members-table-container{background:#fff;border-radius:0.75rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden}
+.members-table{width:100%;border-collapse:collapse}
+.members-table thead{background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%)}
+.members-table th{padding:1rem;text-align:left;font-size:0.75rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #e2e8f0}
+.members-table tbody tr{transition:all 0.2s ease;cursor:pointer;border-bottom:1px solid #f1f5f9}
+.members-table tbody tr:hover{background:#f0fdfa}
+.members-table tbody tr:last-child{border-bottom:none}
+.members-table td{padding:0.875rem 1rem;vertical-align:middle}
+
+.member-cell{display:flex;align-items:center;gap:0.75rem}
+.member-avatar{width:45px;height:45px;border-radius:12px;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.member-avatar-placeholder{width:45px;height:45px;border-radius:12px;background:linear-gradient(135deg,#0891b2 0%,#0dcaf0 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;font-weight:700;box-shadow:0 2px 8px rgba(8,145,178,0.3)}
+.member-info{display:flex;flex-direction:column;gap:0.125rem}
+.member-name{font-weight:600;color:#1e293b;font-size:0.95rem}
+.member-document{font-size:0.8rem;color:#94a3b8}
+
+.member-phone{display:flex;align-items:center;gap:0.5rem;color:#64748b;font-size:0.9rem}
+.member-phone i{color:#0891b2;font-size:0.8rem}
+
+.member-ministry{display:inline-flex;align-items:center;gap:0.375rem;background:rgba(8,145,178,0.1);color:#0891b2;padding:0.25rem 0.625rem;border-radius:1rem;font-size:0.8rem;font-weight:500}
+.member-ministry i{font-size:0.7rem}
+.member-ministry.empty{background:#f1f5f9;color:#94a3b8}
+
+.member-badges{display:flex;gap:0.375rem}
+.member-badge{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem}
 .member-badge.bautizado{background:rgba(99,102,241,0.1);color:#6366f1}
 .member-badge.lider{background:rgba(245,158,11,0.1);color:#f59e0b}
-.member-badge.ministerio{background:rgba(8,145,178,0.1);color:#0891b2}
-.member-status{font-size:0.7rem;font-weight:600;padding:0.25rem 0.5rem;border-radius:1rem;text-transform:uppercase}
+
+.member-status{font-size:0.7rem;font-weight:600;padding:0.3rem 0.625rem;border-radius:1rem;text-transform:uppercase;letter-spacing:0.3px}
 .member-status.activo{background:rgba(16,185,129,0.1);color:#059669}
 .member-status.inactivo{background:rgba(107,114,128,0.1);color:#6b7280}
 .member-status.fallecido{background:rgba(239,68,68,0.1);color:#dc2626}
 .member-status.trasladado{background:rgba(245,158,11,0.1);color:#d97706}
+
+.member-actions{display:flex;gap:0.375rem}
+.member-actions .btn{width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:0.8rem}
 
 .pagination-wrapper{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-top:1.5rem;padding:1rem;background:#fff;border-radius:0.75rem;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
 .pagination-info{font-size:0.9rem;color:#6b7280}
@@ -316,27 +327,28 @@ if ($iglesia_para_zonas > 0) {
 .empty-state h3{font-size:1.1rem;color:#6b7280;margin-bottom:0.5rem}
 .empty-state p{color:#9ca3af;margin-bottom:1rem}
 
-.badges-legend{display:flex;gap:1rem;justify-content:center;margin-top:1rem;padding:0.75rem;background:#f9fafb;border-radius:0.5rem;font-size:0.8rem;color:#6b7280}
-.badges-legend span{display:flex;align-items:center;gap:0.35rem}
-
-.member-card .dropdown-menu{min-width:140px;padding:0.5rem 0;box-shadow:0 4px 12px rgba(0,0,0,0.15);border:1px solid #e5e7eb;border-radius:0.5rem}
-.member-card .dropdown-item{padding:0.5rem 1rem;font-size:0.85rem;display:flex;align-items:center;gap:0.5rem}
-.member-card .dropdown-item i{width:16px}
-
-@media(max-width:1199.98px){.members-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:991.98px){.members-grid{grid-template-columns:repeat(2,1fr)}}
+/* Responsive */
+@media(max-width:991.98px){
+    .members-table thead{display:none}
+    .members-table tbody tr{display:block;padding:1rem;margin-bottom:0.5rem;border:1px solid #e2e8f0;border-radius:0.75rem}
+    .members-table td{display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;border:none}
+    .members-table td::before{content:attr(data-label);font-weight:600;color:#64748b;font-size:0.75rem;text-transform:uppercase}
+    .members-table td:first-child::before{content:none}
+    .members-table td:first-child{justify-content:flex-start}
+    .member-cell{width:100%}
+}
 @media(max-width:767.98px){
-.members-header{padding:1.25rem}.members-header h1{font-size:1.25rem}
-.members-header-content{flex-direction:column;align-items:stretch}
-.stat-cards{grid-template-columns:repeat(3,1fr)}.stat-card{padding:0.75rem}.stat-card .stat-number{font-size:1.5rem}.stat-card .stat-label{font-size:0.65rem}
-.search-row{flex-direction:column}.members-grid{grid-template-columns:repeat(2,1fr);gap:0.75rem}
-.member-card-top{padding:1rem 0.75rem 0.75rem}.member-avatar,.member-avatar-placeholder{width:60px;height:60px}.member-name{font-size:0.9rem}
-.pagination-wrapper{flex-direction:column;text-align:center}.badges-legend{flex-wrap:wrap}
+    .members-header{padding:1.25rem}.members-header h1{font-size:1.25rem}
+    .members-header-content{flex-direction:column;align-items:stretch}
+    .stat-cards{grid-template-columns:repeat(3,1fr)}.stat-card{padding:0.75rem}.stat-card .stat-number{font-size:1.5rem}.stat-card .stat-label{font-size:0.65rem}
+    .search-row{flex-direction:column}
+    .pagination-wrapper{flex-direction:column;text-align:center}
 }
 @media(max-width:575.98px){
-.stat-cards{grid-template-columns:repeat(2,1fr)}.stat-card:first-child{grid-column:span 2}
-.members-grid{grid-template-columns:1fr 1fr;gap:0.5rem}.member-card-body{padding:0.5rem 0.75rem}.member-info-row{font-size:0.8rem}.member-card-footer{padding:0.5rem 0.75rem}
-.results-info{flex-direction:column;gap:0.5rem;text-align:center}
+    .stat-cards{grid-template-columns:repeat(2,1fr)}.stat-card:first-child{grid-column:span 2}
+    .results-info{flex-direction:column;gap:0.5rem;text-align:center}
+    .member-avatar,.member-avatar-placeholder{width:40px;height:40px;border-radius:10px}
+    .member-name{font-size:0.9rem}
 }
 </style>
 
@@ -463,67 +475,85 @@ if ($iglesia_para_zonas > 0) {
     <?php if ($total_paginas > 1): ?><span>Página <?php echo $pagina_actual; ?> de <?php echo $total_paginas; ?></span><?php endif; ?>
 </div>
 
-<!-- Members Grid -->
+<!-- Members Table -->
 <?php if ($resultado && $resultado->num_rows > 0): ?>
-<div class="members-grid">
-    <?php while ($m = $resultado->fetch_assoc()): ?>
-    <div class="member-card" onclick="window.location.href='ver.php?id=<?php echo $m['id']; ?>'">
-        <div class="member-card-top">
-            <?php if ($puede_crear || $puede_eliminar): ?>
-            <div class="member-card-menu" onclick="event.stopPropagation();">
-                <button type="button" class="btn-card-menu" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="ver.php?id=<?php echo $m['id']; ?>"><i class="fas fa-eye text-info"></i> Ver</a></li>
-                    <?php if ($puede_crear): ?><li><a class="dropdown-item" href="editar.php?id=<?php echo $m['id']; ?>"><i class="fas fa-edit text-warning"></i> Editar</a></li><?php endif; ?>
-                    <?php if ($puede_eliminar): ?>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-danger" href="#" onclick="event.preventDefault();confirmarEliminacion(<?php echo $m['id']; ?>,'<?php echo htmlspecialchars(addslashes($m['nombre'].' '.$m['apellido'])); ?>')"><i class="fas fa-trash"></i> Eliminar</a></li>
+<div class="members-table-container">
+    <table class="members-table">
+        <thead>
+            <tr>
+                <th>Miembro</th>
+                <th>Teléfono</th>
+                <th>Ministerio</th>
+                <th>Badges</th>
+                <th>Estado</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php while ($m = $resultado->fetch_assoc()): ?>
+            <tr onclick="window.location.href='ver.php?id=<?php echo $m['id']; ?>'">
+                <td>
+                    <div class="member-cell">
+                        <?php if (!empty($m['foto']) && file_exists(__DIR__.'/../../uploads/miembros/'.$m['foto'])): ?>
+                            <img src="../../uploads/miembros/<?php echo htmlspecialchars($m['foto']); ?>" class="member-avatar" alt="">
+                        <?php else: ?>
+                            <div class="member-avatar-placeholder"><?php echo getInicialesMiembro($m['nombre']??'',$m['apellido']??''); ?></div>
+                        <?php endif; ?>
+                        <div class="member-info">
+                            <span class="member-name"><?php echo htmlspecialchars(($m['nombre']??'').' '.($m['apellido']??'')); ?></span>
+                            <?php if (!empty($m['numero_documento'])): ?>
+                            <span class="member-document"><?php echo htmlspecialchars($m['numero_documento']); ?></span>
+                            <?php elseif (!empty($m['fecha_nacimiento'])): ?>
+                            <span class="member-document"><?php echo calcularEdadMiembro($m['fecha_nacimiento']); ?> años</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </td>
+                <td data-label="Teléfono">
+                    <?php if (!empty($m['telefono'])): ?>
+                    <div class="member-phone">
+                        <i class="fas fa-phone"></i>
+                        <span><?php echo htmlspecialchars($m['telefono']); ?></span>
+                    </div>
+                    <?php else: ?>
+                    <span class="text-muted">—</span>
                     <?php endif; ?>
-                </ul>
-            </div>
-            <?php endif; ?>
-            
-            <?php if (!empty($m['foto']) && file_exists(__DIR__.'/../../uploads/miembros/'.$m['foto'])): ?>
-                <img src="../../uploads/miembros/<?php echo htmlspecialchars($m['foto']); ?>" class="member-avatar">
-            <?php else: ?>
-                <div class="member-avatar-placeholder"><?php echo getInicialesMiembro($m['nombre']??'',$m['apellido']??''); ?></div>
-            <?php endif; ?>
-            
-            <div class="member-name"><?php echo htmlspecialchars(($m['nombre']??'').' '.($m['apellido']??'')); ?></div>
-            <?php if (!empty($m['numero_documento'])): ?>
-            <div class="member-document"><?php echo htmlspecialchars($m['numero_documento']); ?></div>
-            <?php elseif (!empty($m['fecha_nacimiento'])): ?>
-            <div class="member-document"><?php echo calcularEdadMiembro($m['fecha_nacimiento']); ?> años</div>
-            <?php endif; ?>
-        </div>
-        
-        <div class="member-card-body">
-            <?php if (!empty($m['telefono'])): ?>
-            <div class="member-info-row"><i class="fas fa-phone"></i><span><?php echo htmlspecialchars($m['telefono']); ?></span></div>
-            <?php endif; ?>
-            <?php if (!empty($m['ministerio_nombre'])): ?>
-            <div class="member-info-row"><i class="fas fa-hands-helping"></i><span><?php echo htmlspecialchars($m['ministerio_nombre']); ?></span></div>
-            <?php else: ?>
-            <div class="member-info-row"><i class="fas fa-church"></i><span><?php echo htmlspecialchars($m['iglesia_nombre']??''); ?></span></div>
-            <?php endif; ?>
-        </div>
-        
-        <div class="member-card-footer">
-            <div class="member-badges">
-                <?php if (!empty($m['es_bautizado'])): ?><span class="member-badge bautizado" title="Bautizado"><i class="fas fa-water"></i></span><?php endif; ?>
-                <?php if (!empty($m['es_lider'])): ?><span class="member-badge lider" title="Líder"><i class="fas fa-star"></i></span><?php endif; ?>
-                <?php if (!empty($m['ministerio_id'])): ?><span class="member-badge ministerio" title="Ministerio"><i class="fas fa-hands-helping"></i></span><?php endif; ?>
-            </div>
-            <span class="member-status <?php echo $m['estado']??'activo'; ?>"><?php echo ucfirst($m['estado']??'activo'); ?></span>
-        </div>
-    </div>
-    <?php endwhile; ?>
-</div>
-
-<div class="badges-legend">
-    <span><span class="member-badge bautizado"><i class="fas fa-water"></i></span> Bautizado</span>
-    <span><span class="member-badge lider"><i class="fas fa-star"></i></span> Líder</span>
-    <span><span class="member-badge ministerio"><i class="fas fa-hands-helping"></i></span> Ministerio</span>
+                </td>
+                <td data-label="Ministerio">
+                    <?php if (!empty($m['ministerio_nombre'])): ?>
+                    <span class="member-ministry">
+                        <i class="fas fa-hands-helping"></i>
+                        <?php echo htmlspecialchars($m['ministerio_nombre']); ?>
+                    </span>
+                    <?php else: ?>
+                    <span class="member-ministry empty">Sin asignar</span>
+                    <?php endif; ?>
+                </td>
+                <td data-label="Badges">
+                    <div class="member-badges">
+                        <?php if (!empty($m['es_bautizado'])): ?>
+                        <span class="member-badge bautizado" title="Bautizado"><i class="fas fa-water"></i></span>
+                        <?php endif; ?>
+                        <?php if (!empty($m['es_lider'])): ?>
+                        <span class="member-badge lider" title="Líder"><i class="fas fa-star"></i></span>
+                        <?php endif; ?>
+                    </div>
+                </td>
+                <td data-label="Estado">
+                    <span class="member-status <?php echo $m['estado']??'activo'; ?>"><?php echo ucfirst($m['estado']??'activo'); ?></span>
+                </td>
+                <td class="text-center" onclick="event.stopPropagation();">
+                    <div class="member-actions">
+                        <a href="ver.php?id=<?php echo $m['id']; ?>" class="btn btn-outline-info btn-sm" title="Ver"><i class="fas fa-eye"></i></a>
+                        <?php if ($puede_crear): ?>
+                        <a href="editar.php?id=<?php echo $m['id']; ?>" class="btn btn-outline-warning btn-sm" title="Editar"><i class="fas fa-edit"></i></a>
+                        <?php endif; ?>
+                    </div>
+                </td>
+            </tr>
+            <?php endwhile; ?>
+        </tbody>
+    </table>
 </div>
 
 <?php if ($total_paginas > 1): ?>

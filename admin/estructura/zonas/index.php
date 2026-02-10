@@ -250,11 +250,6 @@ if ($ROL_NOMBRE === 'super_admin') {
                             <i class="fas fa-edit"></i>
                         </a>
                         <?php endif; ?>
-                        <?php if ($puede_eliminar): ?>
-                        <a href="eliminar.php?id=<?php echo $zona['id']; ?>" class="btn btn-sm btn-outline-danger btn-action" title="Eliminar" onclick="return confirm('¿Eliminar esta zona? Los miembros no serán eliminados, solo quedarán sin zona asignada.')">
-                            <i class="fas fa-trash"></i>
-                        </a>
-                        <?php endif; ?>
                     </div>
                 </div>
             </div>

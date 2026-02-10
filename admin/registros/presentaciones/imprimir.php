@@ -329,8 +329,8 @@ $lugar = !empty($registro['lugar']) ? $registro['lugar'] : ($iglesia_local ?? '_
         <!-- Encabezado Oficial -->
         <div class="header">
             <img src="/concilio/assets/img/logo-concilio.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+            <div class="registry-name">IGLESIA METODISTA LIBRE, INC.</div>
             <div class="registry-name">REGISTRO BAUTISMAL Y DOCUMENTOS CRISTIANOS</div>
-            <div class="registry-name">IGLESIA METODISTA LIBRE-INC.</div>
             <div class="title">ACTA DE PRESENTACIÓN DE NIÑOS AL SEÑOR</div>
             <div class="acta-number">Acta No. <strong><?php echo htmlspecialchars($registro['numero_acta']); ?></strong></div>
         </div>

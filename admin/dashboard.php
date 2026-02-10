@@ -364,6 +364,27 @@ $welcome_msg = $welcome_messages[$ROL_NOMBRE] ?? 'Panel de Usuario';
     </div>
 </div>
 
+<?php
+// ==================== WIDGET CUMPLEAÑOS DEL MES ====================
+// Mostrar según el rol del usuario
+require_once __DIR__ . '/widgets/cumpleanos_mes.php';
+
+$session_data = [
+    'rol_nombre' => $ROL_NOMBRE,
+    'iglesia_id' => $IGLESIA_ID,
+    'usuario_id' => $_SESSION['usuario_id'] ?? 0
+];
+
+// Solo mostrar para roles específicos
+if (in_array($ROL_NOMBRE, ['pastor', 'secretaria', 'super_admin', 'super_conferencia', 'super_distrito', 'lider_ministerio'])):
+?>
+<div class="row g-2 g-md-3 mt-3">
+    <?php 
+    renderCumpleanosMes(['col' => 'col-12 col-lg-6', 'max' => 10], $conexion, $session_data); 
+    ?>
+</div>
+<?php endif; ?>
+
 <?php 
 // Incluir footer
 require_once __DIR__ . '/includes/footer.php'; 

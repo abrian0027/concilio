@@ -1,0 +1,17 @@
+{
+    "name": "concilio/sistema-membresia",
+    "description": "Sistema de Membresía para Iglesia Metodista Libre",
+    "type": "project",
+    "require": {
+        "php": ">=8.1",
+        "phpmailer/phpmailer": "^6.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "Concilio\\": "includes/"
+        }
+    },
+    "config": {
+        "vendor-dir": "vendor"
+    }
+}

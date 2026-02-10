@@ -120,6 +120,23 @@ if (isset($conexion) && $conexion !== null) {
             }
         }
     }
+    
+    // 5. CONTAR SOLICITUDES DE MEMBRESÍA PENDIENTES (para pastor/secretaria)
+    $solicitudes_pendientes = 0;
+    if (in_array($rol, ['pastor', 'secretaria']) && isset($_SESSION['iglesia_id'])) {
+        $iglesia_id = intval($_SESSION['iglesia_id']);
+        $sql = "SELECT COUNT(*) as total FROM solicitudes_membresia WHERE iglesia_id = $iglesia_id AND estado = 'pendiente'";
+        $result = $conexion->query($sql);
+        if ($result && $row = $result->fetch_assoc()) {
+            $solicitudes_pendientes = (int)$row['total'];
+        }
+    } elseif ($rol === 'super_admin') {
+        $sql = "SELECT COUNT(*) as total FROM solicitudes_membresia WHERE estado = 'pendiente'";
+        $result = $conexion->query($sql);
+        if ($result && $row = $result->fetch_assoc()) {
+            $solicitudes_pendientes = (int)$row['total'];
+        }
+    }
 }
 
 // ============================================
@@ -188,11 +205,28 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
     <!-- Gestión -->
     <li class="nav-section">GESTIÓN</li>
     
-    <li class="nav-item">
-        <a href="<?php echo $base; ?>miembros/index.php" class="nav-link <?php echo $current_dir === 'miembros' ? 'active' : ''; ?>">
+    <li class="nav-item has-submenu">
+        <a href="#" class="nav-link <?php echo in_array($current_dir, ['miembros', 'mentoria', 'recepcion']) ? 'active' : ''; ?>">
             <i class="fas fa-users"></i>
-            <span>Miembros</span>
+            <span>Membrecía</span>
+            <?php if ($solicitudes_pendientes > 0): ?>
+                <span class="badge bg-danger ms-auto" style="font-size: 0.7rem; margin-left: auto;"><?php echo $solicitudes_pendientes; ?></span>
+            <?php endif; ?>
+            <i class="fas fa-chevron-down arrow"></i>
         </a>
+        <ul class="submenu">
+            <li><a href="<?php echo $base; ?>miembros/index.php" class="<?php echo $current_dir === 'miembros' ? 'active' : ''; ?>"><i class="fas fa-list"></i> Listado</a></li>
+            <li><a href="<?php echo $base; ?>miembros/crear.php"><i class="fas fa-user-plus"></i> Nuevo Miembro</a></li>
+            <li>
+                <a href="<?php echo $base; ?>recepcion/index.php" class="<?php echo $current_dir === 'recepcion' ? 'active' : ''; ?>">
+                    <i class="fas fa-inbox"></i> Recepción
+                    <?php if ($solicitudes_pendientes > 0): ?>
+                        <span class="badge bg-warning text-dark" style="font-size: 0.65rem;"><?php echo $solicitudes_pendientes; ?></span>
+                    <?php endif; ?>
+                </a>
+            </li>
+            <li><a href="<?php echo $base; ?>mentoria/index.php" class="<?php echo $current_dir === 'mentoria' ? 'active' : ''; ?>"><i class="fas fa-hands-helping"></i> Mentoría</a></li>
+        </ul>
     </li>
     
     <li class="nav-item has-submenu">
@@ -231,7 +265,7 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
     <li class="nav-item has-submenu">
         <a href="#" class="nav-link">
             <i class="fas fa-coins"></i>
-            <span>Contabilidad</span>
+            <span>Finanzas</span>
             <i class="fas fa-chevron-down arrow"></i>
         </a>
         <ul class="submenu">
@@ -281,11 +315,17 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
     <!-- Gestión -->
     <li class="nav-section">GESTIÓN</li>
     
-    <li class="nav-item">
-        <a href="<?php echo $base; ?>miembros/index.php" class="nav-link <?php echo $current_dir === 'miembros' ? 'active' : ''; ?>">
+    <li class="nav-item has-submenu">
+        <a href="#" class="nav-link <?php echo in_array($current_dir, ['miembros', 'mentoria']) ? 'active' : ''; ?>">
             <i class="fas fa-users"></i>
-            <span>Miembros</span>
+            <span>Membrecía</span>
+            <i class="fas fa-chevron-down arrow"></i>
         </a>
+        <ul class="submenu">
+            <li><a href="<?php echo $base; ?>miembros/index.php" class="<?php echo $current_dir === 'miembros' ? 'active' : ''; ?>"><i class="fas fa-list"></i> Listado</a></li>
+            <li><a href="<?php echo $base; ?>miembros/crear.php"><i class="fas fa-user-plus"></i> Nuevo Miembro</a></li>
+            <li><a href="<?php echo $base; ?>mentoria/index.php" class="<?php echo $current_dir === 'mentoria' ? 'active' : ''; ?>"><i class="fas fa-hands-helping"></i> Mentoría</a></li>
+        </ul>
     </li>
     
     <li class="nav-item">
@@ -324,11 +364,17 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
             <span>Mis Iglesias</span>
         </a>
     </li>
-    <li class="nav-item">
-        <a href="<?php echo $base; ?>miembros/index.php" class="nav-link">
+    <li class="nav-item has-submenu">
+        <a href="#" class="nav-link <?php echo in_array($current_dir, ['miembros', 'mentoria']) ? 'active' : ''; ?>">
             <i class="fas fa-users"></i>
-            <span>Miembros</span>
+            <span>Membrecía</span>
+            <i class="fas fa-chevron-down arrow"></i>
         </a>
+        <ul class="submenu">
+            <li><a href="<?php echo $base; ?>miembros/index.php"><i class="fas fa-list"></i> Listado</a></li>
+            <li><a href="<?php echo $base; ?>miembros/crear.php"><i class="fas fa-user-plus"></i> Nuevo Miembro</a></li>
+            <li><a href="<?php echo $base; ?>mentoria/index.php"><i class="fas fa-hands-helping"></i> Mentoría</a></li>
+        </ul>
     </li>
     <li class="nav-item">
         <a href="<?php echo $base; ?>distritos/reportes.php" class="nav-link">
@@ -430,11 +476,28 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
     
     <!-- ===== IGLESIA LOCAL ===== -->
     <li class="nav-section">MI IGLESIA</li>
-    <li class="nav-item">
-        <a href="<?php echo $base; ?>miembros/index.php" class="nav-link <?php echo $current_dir === 'miembros' ? 'active' : ''; ?>">
+    <li class="nav-item has-submenu">
+        <a href="#" class="nav-link <?php echo in_array($current_dir, ['miembros', 'mentoria', 'recepcion']) ? 'active' : ''; ?>">
             <i class="fas fa-users"></i>
-            <span>Miembros</span>
+            <span>Membrecía</span>
+            <?php if ($solicitudes_pendientes > 0): ?>
+                <span class="badge bg-danger ms-auto" style="font-size: 0.7rem; margin-left: auto;"><?php echo $solicitudes_pendientes; ?></span>
+            <?php endif; ?>
+            <i class="fas fa-chevron-down arrow"></i>
         </a>
+        <ul class="submenu">
+            <li><a href="<?php echo $base; ?>miembros/index.php" class="<?php echo $current_dir === 'miembros' ? 'active' : ''; ?>"><i class="fas fa-list"></i> Listado</a></li>
+            <li><a href="<?php echo $base; ?>miembros/crear.php"><i class="fas fa-user-plus"></i> Nuevo Miembro</a></li>
+            <li>
+                <a href="<?php echo $base; ?>recepcion/index.php" class="<?php echo $current_dir === 'recepcion' ? 'active' : ''; ?>">
+                    <i class="fas fa-inbox"></i> Recepción
+                    <?php if ($solicitudes_pendientes > 0): ?>
+                        <span class="badge bg-warning text-dark" style="font-size: 0.65rem;"><?php echo $solicitudes_pendientes; ?></span>
+                    <?php endif; ?>
+                </a>
+            </li>
+            <li><a href="<?php echo $base; ?>mentoria/index.php" class="<?php echo $current_dir === 'mentoria' ? 'active' : ''; ?>"><i class="fas fa-hands-helping"></i> Mentoría</a></li>
+        </ul>
     </li>
     
     <!-- Registros -->
@@ -479,7 +542,7 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
     <li class="nav-item has-submenu">
         <a href="#" class="nav-link">
             <i class="fas fa-coins"></i>
-            <span>Contabilidad</span>
+            <span>Finanzas</span>
             <i class="fas fa-chevron-down arrow"></i>
         </a>
         <ul class="submenu">

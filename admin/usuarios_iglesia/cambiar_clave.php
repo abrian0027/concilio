@@ -1,20 +1,23 @@
 <?php
 declare(strict_types=1);
 
-$page_title = "Cambiar Contraseña";
-require_once __DIR__ . '/../includes/header.php';
-
-// Solo pastor
-if ($ROL_NOMBRE !== 'pastor') {
-    echo "<div class='alert alert-danger'><i class='fas fa-exclamation-triangle'></i> Sin permisos.</div>";
-    require_once __DIR__ . '/../includes/footer.php';
-    exit;
-}
-
+// Cargar configuración PRIMERO (antes de cualquier output)
 require_once __DIR__ . '/../../config/config.php';
 
+// Verificar sesión y rol
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$ROL_NOMBRE = $_SESSION['rol_nombre'] ?? '';
 $iglesia_id = $_SESSION['iglesia_id'] ?? null;
 $usuario_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+
+// Validaciones que requieren redirección (ANTES del header HTML)
+if ($ROL_NOMBRE !== 'pastor') {
+    header('Location: index.php?error=' . urlencode('Sin permisos'));
+    exit;
+}
 
 if (!$usuario_id || !$iglesia_id) {
     header('Location: index.php?error=' . urlencode('Datos inválidos'));
@@ -38,7 +41,8 @@ if (!$usuario) {
     exit;
 }
 
-// Procesar cambio de contraseña
+// Procesar cambio de contraseña (ANTES del header HTML)
+$error = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nueva_clave = $_POST['nueva_clave'] ?? '';
     $confirmar_clave = $_POST['confirmar_clave'] ?? '';
@@ -61,6 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
     }
 }
+
+// AHORA sí incluir el header HTML
+$page_title = "Cambiar Contraseña";
+require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <!-- Header Compacto -->
@@ -83,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </h6>
     </div>
     <div class="card-body">
-        <?php if (isset($error)): ?>
+        <?php if ($error): ?>
             <div class="alert alert-danger alert-dismissible fade show border-0">
                 <i class="fas fa-exclamation-triangle"></i> <?php echo htmlspecialchars($error); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>

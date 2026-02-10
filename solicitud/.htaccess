@@ -1,0 +1,7 @@
+RewriteEngine On
+RewriteBase /concilio/solicitud/
+
+# Redirigir /solicitud/IML-XXX a /solicitud/index.php?iglesia=IML-XXX
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([A-Za-z0-9-]+)/?$ index.php?iglesia=$1 [L,QSA]

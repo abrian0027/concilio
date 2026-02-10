@@ -13,14 +13,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Verificar si es el formulario del modal (cedula)
     if (isset($_POST['modal_cedula']) && $_POST['modal_cedula'] == '1') {
         $codigo_iglesia_temp = $_POST['codigo_iglesia_temp'] ?? '';
-        $cedula = trim($_POST['cedula'] ?? '');
+        $cedula_raw = trim($_POST['cedula'] ?? '');
+        // Limpiar cédula: quitar guiones, espacios y cualquier caracter no numérico
+        $cedula = preg_replace('/[^0-9]/', '', $cedula_raw);
         $clave = $_POST['clave_temp'] ?? '';
+        
+        // Cargar datos de la iglesia para mostrar en caso de error
+        $sqlIglesiaInfo = "SELECT id, codigo, nombre FROM iglesias WHERE codigo = ? AND activo = 1 LIMIT 1";
+        $stmtInfo = $conexion->prepare($sqlIglesiaInfo);
+        $stmtInfo->bind_param("s", $codigo_iglesia_temp);
+        $stmtInfo->execute();
+        $iglesiaInfo = $stmtInfo->get_result()->fetch_assoc();
+        $stmtInfo->close();
+        
+        if ($iglesiaInfo) {
+            $nombre_iglesia_temp = $iglesiaInfo['nombre'];
+            
+            // Cargar usuarios disponibles
+            $sqlUsuariosModal = "
+                SELECT u.id, u.nombre, u.apellido, u.rol_id, r.nombre as rol_nombre
+                FROM usuarios u
+                INNER JOIN roles r ON r.id = u.rol_id
+                WHERE u.iglesia_id = ? AND u.activo = 1
+                ORDER BY 
+                    CASE r.nombre
+                        WHEN 'pastor' THEN 1
+                        WHEN 'tesorero' THEN 2
+                        WHEN 'secretaria' THEN 3
+                        ELSE 4
+                    END
+            ";
+            $stmtUsersModal = $conexion->prepare($sqlUsuariosModal);
+            $stmtUsersModal->bind_param("i", $iglesiaInfo['id']);
+            $stmtUsersModal->execute();
+            $resUsersModal = $stmtUsersModal->get_result();
+            while ($user = $resUsersModal->fetch_assoc()) {
+                $usuarios_disponibles[] = $user;
+            }
+            $stmtUsersModal->close();
+        }
         
         if ($cedula === "") {
             $mensaje_error = "Debe ingresar su número de cédula.";
             $mostrar_modal_cedula = true;
         } else {
             // Buscar el usuario específico por cédula e iglesia
+            // Comparamos quitando guiones de ambos lados para mayor flexibilidad
             $sqlUsuarioCedula = "
                 SELECT u.id, u.nombre, u.apellido, u.usuario, u.clave,
                        u.rol_id, u.conferencia_id, u.distrito_id, u.iglesia_id,
@@ -28,7 +66,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                        m.numero_documento, m.id AS miembro_id,
                        i.nombre AS nombre_iglesia
                 FROM iglesias i
-                INNER JOIN miembros m ON i.id = m.iglesia_id AND m.numero_documento = ? AND m.estado = 'activo'
+                INNER JOIN miembros m ON i.id = m.iglesia_id 
+                    AND REPLACE(REPLACE(m.numero_documento, '-', ''), ' ', '') = ? 
+                    AND m.estado = 'activo'
                 INNER JOIN usuarios u ON i.id = u.iglesia_id 
                     AND u.activo = 1
                     AND (
@@ -433,9 +473,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 2px solid var(--border-color);
             padding: 0.9rem 1.2rem;
             font-size: 1rem;
+            font-size: max(16px, 1rem); /* Evita zoom en iOS */
+            min-height: 48px; /* Touch-friendly */
             outline: none;
             transition: all 0.3s ease;
             background: #fff;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .form-control:focus {
@@ -448,6 +492,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: var(--gradient-blue);
             border: none;
             border-radius: 12px;
+            min-height: 48px; /* Touch-friendly */
             padding: 1rem;
             font-size: 1rem;
             font-weight: 600;
@@ -522,13 +567,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--text-dark);
             flex: 1;
             min-width: 140px;
+            min-height: 44px; /* Touch-friendly */
             justify-content: center;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .help-btn:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-light);
             text-decoration: none;
+        }
+        
+        .help-btn:active {
+            transform: translateY(0);
         }
 
         .help-btn.whatsapp {
@@ -542,7 +594,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: white;
             border-color: var(--primary-color);
         }
-
         .help-btn i {
             font-size: 1.1rem;
         }
@@ -623,10 +674,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             line-height: 1;
             color: var(--text-light);
             transition: color 0.2s ease;
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         .info-modal-close:hover {
             color: var(--text-dark);
+        }
+
+        .info-modal-close:active {
+            transform: scale(0.95);
         }
 
         .info-modal-body {
@@ -707,17 +769,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 1.8rem;
             cursor: pointer;
             line-height: 1;
-            width: 36px;
-            height: 36px;
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s ease;
+            transition: background 0.2s ease, transform 0.1s ease;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         .cedula-modal-close:hover {
             background: rgba(255, 255, 255, 0.3);
+        }
+
+        .cedula-modal-close:active {
+            transform: scale(0.92);
+            background: rgba(255, 255, 255, 0.4);
         }
 
         .cedula-modal-body {
@@ -811,12 +882,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
+            min-height: 48px; /* Touch-friendly */
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .btn-secondary {
             background: #6b7280;
             border: none;
             color: white;
+            cursor: pointer;
         }
 
         .btn-secondary:hover {
@@ -1287,14 +1362,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         name="cedula"
                         id="cedula"
                         class="form-control"
-                        placeholder="Ej: 001-0046778-5"
+                        placeholder="Ej: 00100467785 ó 001-0046778-5"
                         required
                         autofocus
+                        inputmode="numeric"
                         pattern="[0-9-]+"
-                        title="Ingrese su número de cédula con guiones"
+                        title="Ingrese su número de cédula (con o sin guiones)"
                     >
                     <small style="display: block; margin-top: 5px; color: #6b7280; font-size: 0.8rem;">
-                        Ingrese su cédula tal como aparece en el sistema
+                        <i class="fas fa-info-circle"></i> Puede ingresar con o sin guiones
                     </small>
                 </div>
                 
