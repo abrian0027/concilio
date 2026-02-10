@@ -46,7 +46,7 @@ $RECYCLE.BIN/
 *.sublime-workspace
 
 # ===== DEPENDENCIAS =====
-/vendor/
+# /vendor/  # Comentado para subir PHPMailer a producción
 /node_modules/
 
 # ===== UPLOADS DE USUARIOS =====
