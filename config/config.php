@@ -83,7 +83,7 @@ if ($is_local) {
     define('MAIL_HOST', 'mail.iglesiametodistalibrerd.com');
     define('MAIL_PORT', 465); // Puerto SSL para cPanel
     define('MAIL_USERNAME', 'notificaciones@iglesiametodistalibrerd.com');
-    define('MAIL_PASSWORD', 'AQUI_TU_PASSWORD'); // ⚠️ Cambiar por la contraseña real
+    define('MAIL_PASSWORD', 'Lamisma2783m');
     define('MAIL_ENCRYPTION', 'ssl'); // SSL para puerto 465
 }
 define('MAIL_FROM_EMAIL', 'notificaciones@iglesiametodistalibrerd.com');
